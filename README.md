@@ -8,7 +8,9 @@
 
 KiteSurf Store is a planned full-stack e-commerce web application for customers in the United Kingdom who want to browse and purchase kitesurfing equipment online.
 
-The website aims to provide a straightforward shopping experience, allowing customers to explore equipment categories, search and filter products, view detailed product information, manage a shopping cart and complete purchases securely.
+The website aims to provide a straightforward shopping experience, allowing customers to explore equipment categories, search and filter products, view detailed product information, manage a shopping cart and complete purchases securely as guests or registered customers.
+
+Payments will be simulated using Stripe Test Mode, as KiteSurf Store is an educational demonstration project that does not process real payments or fulfil physical orders.
 
 Registered customers will be able to manage their personal information and view their previous orders.
 
@@ -35,7 +37,7 @@ Additional sections will be added as the project develops.
 
 KiteSurf Store is a planned full-stack e-commerce website focused on selling kitesurfing equipment to customers in the United Kingdom.
 
-The aim of the project is to create an accessible, responsive and user-friendly online store that makes it easy for customers to find suitable equipment and purchase it online.
+The aim of the project is to create an accessible, responsive and user-friendly online store that makes it easy for customers to find suitable equipment and complete simulated purchases online.
 
 The project will be developed as an original Django application for Unit 4: Full Stack Frameworks with Django.
 
@@ -48,8 +50,9 @@ The project will be developed as an original Django application for Unit 4: Full
 - Check product availability.
 - Add products to a shopping cart.
 - Manage shopping cart contents.
-- Complete purchases securely.
-- Receive clear feedback about their orders.
+- Complete simulated purchases securely as a guest or registered customer.
+- Receive clear feedback about payments and orders.
+- Register, verify an email address and recover account access.
 - Manage personal account information.
 - View previous orders.
 - Use the website on mobile, tablet and desktop devices.
@@ -71,8 +74,10 @@ The project will be developed as an original Django application for Unit 4: Full
 - Develop an original full-stack application using Django.
 - Design a relational database to support the store's functionality.
 - Implement appropriate user authentication and access controls.
-- Provide product management functionality.
-- Integrate online payment processing.
+- Provide product management functionality through the website.
+- Integrate simulated online payment processing using Stripe Test Mode.
+- Support guest checkout and registered customer checkout.
+- Provide email verification, password recovery and order confirmation emails.
 - Apply testing throughout development.
 - Deploy the completed application to a cloud hosting platform.
 
@@ -157,7 +162,7 @@ The requirements are prioritised using the MoSCoW method:
 | US03 | As a customer, I want to add products to a shopping cart so that I can purchase multiple items together. |
 | US04 | As a customer, I want to update quantities and remove products from my cart so that I can control my order. |
 | US05 | As a customer, I want to see my order total so that I know how much I will pay. |
-| US06 | As a customer, I want to complete a secure online payment so that I can purchase equipment. |
+| US06 | As a customer, I want to complete a secure simulated online payment so that I can purchase equipment through the demonstration checkout. |
 | US07 | As a customer, I want to receive confirmation of successful or unsuccessful payments so that I know the status of my purchase. |
 | US08 | As a visitor, I want to register an account so that I can access customer-specific features. |
 | US09 | As a registered customer, I want to log in and log out securely so that I can protect my account. |
@@ -175,6 +180,10 @@ The requirements are prioritised using the MoSCoW method:
 | US21 | As a customer, I want my shopping cart to persist while browsing so that I do not lose selected products. |
 | US24 | As a visitor, I want registration and login pages to be available only when I am logged out so that the authentication process is clear and appropriate to my current session. |
 | US25 | As a customer, I want my personal information and order history to be accessible only to me so that other customers cannot view my private data. |
+| US26 | As a customer, I want to complete checkout either as a guest or as a registered user so that I can choose whether to create an account before purchasing. |
+| US27 | As a registered customer, I want to verify my email address so that my account can be confirmed and protected. |
+| US28 | As a registered customer, I want to reset my forgotten password so that I can regain access to my account. |
+| US30 | As a customer, I want to receive an order confirmation email after successful payment so that I have a record of my purchase. |
 
 ### Should Have
 
@@ -186,6 +195,7 @@ No features are currently assigned to this priority. The initial development pla
 |---|---|
 | US22 | As a visitor, I want to sort products by price so that I can compare equipment within my budget. |
 | US23 | As a customer, I want to see related products so that I can discover additional equipment. |
+| US29 | As a visitor, I want to sign in using my Google account so that I can access the website without creating a separate password. |
 
 ### Won't Have
 
@@ -202,7 +212,7 @@ These features may be considered for future development.
 
 ### Development Tracking
 
-Each user story will be linked to a GitHub Issue containing its acceptance criteria and implementation tasks.
+Each user story is tracked in a GitHub Issue with acceptance criteria and implementation tasks.
 
 Development progress will be documented through Git commits, automated tests and manual testing.
 
@@ -218,7 +228,7 @@ The UX planning for KiteSurf Store follows Jesse James Garrett's Five Planes of 
 
 The purpose of KiteSurf Store is to provide an online shopping experience for customers interested in kitesurfing equipment in the United Kingdom.
 
-The website aims to help customers find suitable equipment, understand product specifications and complete purchases through a straightforward shopping process.
+The website aims to help customers find suitable equipment, understand product specifications and complete simulated purchases through a straightforward shopping process.
 
 The main business objective is to provide an online storefront where authorised staff can maintain the product catalogue while preserving reliable customer order records.
 
@@ -232,20 +242,26 @@ The essential functional requirements include:
 
 - Product catalogue and individual product pages.
 - Product search and category filtering.
-- Product availability information.
-- Shopping cart management.
+- Product availability information and stock quantity validation.
+- Session-based shopping cart management.
 - Customer registration and authentication.
+- Email verification and password recovery.
 - Customer profile management.
-- Secure online checkout.
+- Guest and registered customer checkout.
+- Secure simulated online payments using Stripe Test Mode.
 - Payment confirmation and error feedback.
+- Order confirmation emails.
 - Customer order history.
-- Staff-only product management.
+- Staff-only product management through the website.
+- Preservation of historical order information.
 
 The order of features listed above reflects the customer shopping experience rather than development priority.
 
 Implementation priorities are defined in the User Stories and Prioritisation section.
 
 Optional features, including price sorting and related products, will only be considered after essential functionality has been completed.
+
+Google OAuth authentication is also planned as an optional feature and will only be implemented after essential functionality is complete.
 
 ### 3. Structure
 
@@ -260,18 +276,25 @@ The planned information architecture is organised around the main customer shopp
 5. Add products to the shopping cart.
 6. Review and update the cart.
 7. Proceed to checkout.
-8. Complete payment.
-9. Receive payment confirmation.
+8. Choose to continue as a guest or use a registered account.
+9. Enter or confirm contact and UK delivery information.
+10. Complete a simulated payment using Stripe Test Mode.
+11. Receive payment confirmation and an order confirmation email.
 
 #### Registered Customer Journey
 
 Registered customers will also be able to:
 
-1. Register or log in.
-2. Access their account.
-3. View and update personal information.
-4. View previous orders.
-5. Log out securely.
+1. Register using an email address and password.
+2. Verify their email address.
+3. Log in and log out securely.
+4. Reset a forgotten password.
+5. Access their account.
+6. View and update personal information.
+7. Use saved profile information during checkout.
+8. View previous orders.
+
+Google authentication may be offered as an additional sign-in method if time permits.
 
 #### Staff Journey
 
@@ -284,41 +307,22 @@ Authorised staff will be able to:
 5. Edit product information.
 6. Remove discontinued products from the active catalogue.
 
-The final navigation structure and URL organisation will be documented as the application's pages are developed.
+The website's navigation structure and page hierarchy will be
+defined during PLAN02 and documented in this section.
+
+The final URL configuration will be documented during implementation.
 
 ### 4. Skeleton
 
-The interface will be designed to support clear navigation, readable product information and straightforward user interactions.
+Desktop and mobile wireframes will be developed during the
+PLAN02 — Sitemap, Wireframes and Visual Direction stage.
 
-The initial layout requirements include:
-
-- A consistent navigation bar.
-- Clearly organised product listings.
-- Product cards displaying essential information.
-- Dedicated product details pages.
-- Accessible forms with clear labels.
-- Visible validation messages.
-- A shopping cart displaying quantities and totals.
-- Clear checkout actions.
-- Understandable payment feedback.
-- Responsive layouts for mobile, tablet and desktop devices.
-
-Desktop and mobile wireframes will be created to establish the layout of the main pages before implementation.
-
-The wireframes and any subsequent design changes will be documented in this section.
+The completed wireframes and relevant design decisions will
+be documented here.
 
 ### 5. Surface
 
-The visual design will aim to reflect the outdoor and water sports market while maintaining a professional e-commerce appearance.
+The visual design, including the colour palette, typography
+and interface components, will be defined during PLAN02.
 
-The planned visual direction includes:
-
-- A clean and modern interface.
-- Product photography as a prominent visual element.
-- Consistent typography and spacing.
-- Clear visual hierarchy.
-- Accessible colour contrast.
-- Recognisable buttons and interactive elements.
-- Consistent styling across the website.
-
-The final colour palette, typography and visual components will be documented once the design decisions have been made.
+The final design decisions will be documented here.
