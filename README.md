@@ -12,9 +12,7 @@ The website aims to provide a straightforward shopping experience, allowing cust
 
 Payments will be simulated using Stripe Test Mode, as KiteSurf Store is an educational demonstration project that does not process real payments or fulfil physical orders.
 
-Registered customers will be able to manage their personal information and view their previous orders.
-
-The application will also provide authorised staff with a dedicated website interface for managing products, including creating, viewing, updating and removing products from the active catalogue.
+Registered customers will be able to view and update their profiles, manage saved delivery addresses, review previous orders and delete their accounts. Product catalogue administration will use Django Admin; a separate staff dashboard is outside the initial project scope.
 
 KiteSurf Store is being developed as an original Django application for the **Gateway Qualifications Level 5 Diploma in Web Application Development — Unit 4: Full Stack Frameworks with Django (F/650/3528)**.
 
@@ -62,7 +60,7 @@ The project will be developed as an original Django application for Unit 4: Full
 - Present kitesurfing equipment through a professional online storefront.
 - Organise products into relevant categories.
 - Maintain accurate product information and prices.
-- Manage products through a secure staff interface.
+- Manage catalogue data through Django Admin.
 - Remove discontinued products from the active catalogue.
 - Preserve historical order information.
 - Keep reliable records of customer orders.
@@ -74,7 +72,8 @@ The project will be developed as an original Django application for Unit 4: Full
 - Develop an original full-stack application using Django.
 - Design a relational database to support the store's functionality.
 - Implement appropriate user authentication and access controls.
-- Provide product management functionality through the website.
+- Provide validated customer-facing CRUD for saved delivery addresses.
+- Allow customers to view and update their profiles and delete their accounts securely.
 - Integrate simulated online payment processing using Stripe Test Mode.
 - Support guest checkout and registered customer checkout.
 - Provide email verification, password recovery and order confirmation emails.
@@ -118,21 +117,13 @@ Customers who have previously purchased equipment and may want to shop again.
 Their main needs include:
 
 - Convenient access to their accounts.
-- Easy management of personal information.
+- Easy management of personal information and saved delivery addresses.
 - Access to previous orders.
 - A consistent shopping experience.
 
 ### Business Users
 
-The website will also serve authorised store staff responsible for maintaining the online catalogue.
-
-Their main needs include:
-
-- Managing product information and prices.
-- Adding new products.
-- Updating existing products.
-- Removing products that are no longer offered.
-- Maintaining accurate product availability.
+Authorised store staff will maintain the demonstration catalogue using Django Admin. Their needs include accurate product listings, pricing and stock information. A separate staff management dashboard is outside the initial project scope.
 
 ### Design Considerations
 
@@ -144,7 +135,7 @@ The interface will aim to provide clear navigation, readable content, accessible
 
 ## User Stories and Prioritisation
 
-User stories define the planned functionality of KiteSurf Store from the perspective of visitors, registered customers and store staff.
+User stories define the planned functionality of KiteSurf Store from the perspective of visitors and registered customers.
 
 The requirements are prioritised using the MoSCoW method:
 
@@ -166,12 +157,12 @@ The requirements are prioritised using the MoSCoW method:
 | US07 | As a customer, I want to receive confirmation of successful or unsuccessful payments so that I know the status of my purchase. |
 | US08 | As a visitor, I want to register an account so that I can access customer-specific features. |
 | US09 | As a registered customer, I want to log in and log out securely so that I can protect my account. |
-| US10 | As a registered customer, I want to manage my personal information so that my account details remain accurate. |
+| US10 | As a registered customer, I want to view and update my profile so that my contact information remains accurate. |
 | US11 | As a registered customer, I want to view my previous orders so that I can keep track of my purchases. |
-| US12 | As a store administrator, I want to add products through the website so that I can expand the catalogue. |
-| US13 | As a store administrator, I want to view and edit product information so that I can maintain accurate listings. |
-| US14 | As a store administrator, I want to remove products from the active catalogue so that discontinued equipment is no longer available for purchase while existing order records remain intact. |
-| US15 | As a store administrator, I want product management restricted to authorised staff so that customer accounts cannot modify the catalogue. |
+| US12 | As a registered customer, I want to add a delivery address so that I can reuse it during checkout. |
+| US13 | As a registered customer, I want to view and edit my saved delivery addresses so that they remain accurate. |
+| US14 | As a registered customer, I want to delete an unused delivery address so that I can manage my saved information. |
+| US15 | As a registered customer, I want to delete my account securely so that I can stop using the service. |
 | US16 | As a user, I want clear validation messages so that I can correct invalid information. |
 | US17 | As a user, I want the website to work on different screen sizes so that I can shop using my preferred device. |
 | US18 | As a visitor, I want to search for products by name so that I can find specific equipment quickly. |
@@ -206,6 +197,7 @@ The following features are excluded from the initial project scope:
 - Discount codes and loyalty programmes.
 - Multiple currencies.
 - Advanced inventory management.
+- Dedicated staff dashboard and customer-facing product administration.
 - Shipping carrier API integrations.
 
 These features may be considered for future development.
@@ -230,7 +222,7 @@ The purpose of KiteSurf Store is to provide an online shopping experience for cu
 
 The website aims to help customers find suitable equipment, understand product specifications and complete simulated purchases through a straightforward shopping process.
 
-The main business objective is to provide an online storefront where authorised staff can maintain the product catalogue while preserving reliable customer order records.
+The main business objective is to provide an online storefront with customer-managed account details and reliable order records. Catalogue maintenance will use Django Admin.
 
 The target audience and their needs are described in the [Target Audience](#target-audience) section.
 
@@ -252,7 +244,8 @@ The essential functional requirements include:
 - Payment confirmation and error feedback.
 - Order confirmation emails.
 - Customer order history.
-- Staff-only product management through the website.
+- Customer-facing create, read, update and delete operations for saved delivery addresses.
+- Secure customer profile updates and account deletion.
 - Preservation of historical order information.
 
 The order of features listed above reflects the customer shopping experience rather than development priority.
@@ -291,24 +284,18 @@ Registered customers will also be able to:
 4. Reset a forgotten password.
 5. Access their account.
 6. View and update personal information.
-7. Use saved profile information during checkout.
+7. Manage saved delivery addresses and use them during checkout.
 8. View previous orders.
 
 Google authentication may be offered as an additional sign-in method if time permits.
 
-#### Staff Journey
+#### Customer Account and Address Management
 
-Authorised staff will be able to:
+Registered customers will be able to create, view, edit and delete their own saved delivery addresses through validated forms. They will also be able to view and update their profiles and request account deletion. Historical order snapshots will be preserved independently of changes to saved addresses or accounts, subject to the documented personal-data retention policy.
 
-1. Log in using an authorised account.
-2. Access the product management interface.
-3. View existing product records.
-4. Add new products.
-5. Edit product information.
-6. Remove discontinued products from the active catalogue.
+Catalogue data will be managed through Django Admin. A dedicated staff dashboard is not planned.
 
-The website's navigation structure and page hierarchy will be
-defined during PLAN02 and documented in this section.
+The website's navigation structure and page hierarchy will be defined during PLAN02 and documented in this section.
 
 The final URL configuration will be documented during implementation.
 
