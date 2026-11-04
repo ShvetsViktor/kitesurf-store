@@ -258,7 +258,81 @@ Google OAuth authentication is also planned as an optional feature and will only
 
 ### 3. Structure
 
-The planned information architecture is organised around the main customer shopping journey.
+## UX Design
+
+### Sitemap
+
+The sitemap illustrates the navigation structure of KiteSurf Store,
+including product browsing, shopping bag management, checkout,
+user authentication, profile management and administrative functionality.
+
+The website supports both guest checkout and registered customer accounts.
+Registered users can manage their profiles, delivery addresses and order
+history, while staff manage products, categories and orders through
+Django Admin.
+
+```text
+KiteSurf Store
+│
+├── Home (/)
+│
+├── Products (/products/)
+│   ├── Product Catalogue
+│   │   ├── Search Products
+│   │   └── Filter by Category
+│   │
+│   └── Product Detail (/products/<id>/)
+│
+├── Shopping Bag (/bag/)
+│   ├── Add Product
+│   ├── Update Quantity
+│   └── Remove Product
+│
+├── Checkout (/checkout/)
+│   ├── Contact & Delivery Details
+│   ├── Order Summary
+│   ├── Stripe Payment
+│   └── Checkout Success (/checkout/success/<order_number>/)
+│
+├── Account (/accounts/)
+│   ├── Register
+│   ├── Login
+│   ├── Logout
+│   ├── Email Verification
+│   └── Password Reset
+│
+├── My Profile (/profile/)
+│   ├── Edit Profile
+│   ├── Saved Delivery Addresses
+│   │   ├── Add Address
+│   │   ├── Edit Address
+│   │   └── Delete Address
+│   ├── Order History
+│   └── Delete Account
+│
+└── Django Admin (/admin/)
+    ├── Manage Products
+    ├── Manage Categories
+    └── Manage Orders
+```
+
+The sitemap separates public pages from authenticated customer features
+and staff-only administration.
+
+The final URL patterns will be implemented using Django's URL routing
+system. Access to customer-specific information will be restricted
+through authentication and ownership checks.
+
+### Wireframes
+
+Wireframes will be created for desktop and mobile layouts to establish
+page structure, navigation and responsive behaviour before implementation.
+
+### Visual Design
+
+The visual design will define the colour palette, typography, buttons,
+product cards, forms and responsive layout conventions used throughout
+the application.
 
 #### Customer Journey
 
