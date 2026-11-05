@@ -258,132 +258,115 @@ Google OAuth authentication is also planned as an optional feature and will only
 
 ### 3. Structure
 
-## UX Design
+The Structure plane defines the information architecture, navigation hierarchy and main customer journeys of KiteSurf Store.
 
-### Sitemap
+#### Sitemap
 
-The sitemap illustrates the navigation structure of KiteSurf Store,
-including product browsing, shopping bag management, checkout,
-user authentication, profile management and administrative functionality.
-
-The website supports both guest checkout and registered customer accounts.
-Registered users can manage their profiles, delivery addresses and order
-history, while staff manage products, categories and orders through
-Django Admin.
+The sitemap shows the planned customer-facing pages and separates public navigation from authenticated account functionality. Django Admin is a separate staff-only interface.
 
 ```text
 KiteSurf Store
 │
 ├── Home (/)
-│
 ├── Products (/products/)
-│   ├── Product Catalogue
-│   │   ├── Search Products
-│   │   └── Filter by Category
-│   │
-│   └── Product Detail (/products/<id>/)
-│
+│   ├── Search and Category Filtering
+│   └── Product Details
 ├── Shopping Bag (/bag/)
-│   ├── Add Product
-│   ├── Update Quantity
-│   └── Remove Product
-│
 ├── Checkout (/checkout/)
-│   ├── Contact & Delivery Details
+│   ├── Contact and Delivery Details
 │   ├── Order Summary
-│   ├── Stripe Payment
-│   └── Checkout Success (/checkout/success/<order_number>/)
-│
-├── Account (/accounts/)
+│   ├── Stripe Payment (Test Mode)
+│   └── Order Confirmation
+├── Accounts (/accounts/)
 │   ├── Register
-│   ├── Login
-│   ├── Logout
+│   ├── Login / Logout
 │   ├── Email Verification
 │   └── Password Reset
-│
-├── My Profile (/profile/)
-│   ├── Edit Profile
-│   ├── Saved Delivery Addresses
-│   │   ├── Add Address
-│   │   ├── Edit Address
-│   │   └── Delete Address
-│   ├── Order History
-│   └── Delete Account
-│
-└── Django Admin (/admin/)
-    ├── Manage Products
-    ├── Manage Categories
-    └── Manage Orders
+└── My Profile (/profile/) [Authenticated]
+    ├── Edit Profile
+    ├── Saved Delivery Addresses
+    │   ├── Add Address
+    │   ├── Edit Address
+    │   └── Delete Address
+    ├── Order History
+    └── Delete Account
+
+Django Admin (/admin/) [Staff Only]
+├── Manage Products
+├── Manage Categories
+└── Manage Orders
 ```
 
-The sitemap separates public pages from authenticated customer features
-and staff-only administration.
+Search and filtering are catalogue functions, not standalone pages. Guest checkout does not require an account. The paths are indicative and may be refined when Django URL patterns are implemented.
 
-The final URL patterns will be implemented using Django's URL routing
-system. Access to customer-specific information will be restricted
-through authentication and ownership checks.
+#### Primary Customer Journey
 
-### Wireframes
-
-Wireframes will be created for desktop and mobile layouts to establish
-page structure, navigation and responsive behaviour before implementation.
-
-### Visual Design
-
-The visual design will define the colour palette, typography, buttons,
-product cards, forms and responsive layout conventions used throughout
-the application.
-
-#### Customer Journey
-
-1. Visit the homepage.
-2. Browse, search or filter products.
-3. Open a product details page.
-4. Check product information and availability.
-5. Add products to the shopping cart.
-6. Review and update the cart.
-7. Proceed to checkout.
-8. Choose to continue as a guest or use a registered account.
-9. Enter or confirm contact and UK delivery information.
-10. Complete a simulated payment using Stripe Test Mode.
-11. Receive payment confirmation and an order confirmation email.
+1. Visit the homepage and browse, search or filter products.
+2. Open a product detail page and review availability and specifications.
+3. Add products to the shopping bag and adjust quantities.
+4. Proceed to checkout as a guest or registered customer.
+5. Enter or confirm contact and UK delivery details.
+6. Complete a simulated payment through Stripe Test Mode.
+7. Receive clear payment feedback and, after successful payment, an order confirmation email.
 
 #### Registered Customer Journey
 
-Registered customers will also be able to:
+Registered customers can register, verify their email, log in, recover a forgotten password, update their profile, manage saved delivery addresses, view their own order history and delete their account. Google sign-in remains optional (US29).
 
-1. Register using an email address and password.
-2. Verify their email address.
-3. Log in and log out securely.
-4. Reset a forgotten password.
-5. Access their account.
-6. View and update personal information.
-7. Manage saved delivery addresses and use them during checkout.
-8. View previous orders.
+#### Access and Data Protection
 
-Google authentication may be offered as an additional sign-in method if time permits.
-
-#### Customer Account and Address Management
-
-Registered customers will be able to create, view, edit and delete their own saved delivery addresses through validated forms. They will also be able to view and update their profiles and request account deletion. Historical order snapshots will be preserved independently of changes to saved addresses or accounts, subject to the documented personal-data retention policy.
-
-Catalogue data will be managed through Django Admin. A dedicated staff dashboard is not planned.
-
-The website's navigation structure and page hierarchy will be defined during PLAN02 and documented in this section.
-
-The final URL configuration will be documented during implementation.
+Customer profile, address and order-history pages will require authentication and ownership checks. Historical order information will be preserved independently of saved-address changes or account deletion, subject to the documented personal-data retention policy.
 
 ### 4. Skeleton
 
-Desktop and mobile wireframes will be developed during the
-PLAN02 — Sitemap, Wireframes and Visual Direction stage.
+The Skeleton plane establishes the arrangement of navigation, product content, shopping controls and forms before implementation.
 
-The completed wireframes and relevant design decisions will
-be documented here.
+#### Global Layout
+
+- **Desktop:** A visible brand identity, primary navigation, account access and shopping bag access.
+- **Mobile:** A compact navigation layout with accessible controls and shopping bag access.
+- **Across devices:** Consistent headings, clearly labelled form fields, visible validation feedback and responsive product cards.
+
+#### Page Wireframes
+
+Low-fidelity wireframes were created during PLAN02 to explore the main page layouts and user journeys. They are design references, not evidence that the features have already been implemented.
+
+**Home page wireframe**
+
+![KiteSurf Store home page wireframe](assets/readme/wireframes/home.jpg)
+
+**Store pages wireframes**
+
+![KiteSurf Store catalogue, product, cart, checkout, confirmation and account wireframes](assets/readme/wireframes/store-pages-wireframes.png)
+
+The store-page wireframes illustrate the intended layout for product discovery, product details, shopping bag, checkout, order confirmation and customer account management. The implemented interface may be simplified to meet assessment requirements and the available development time.
 
 ### 5. Surface
 
-The visual design, including the colour palette, typography
-and interface components, will be defined during PLAN02.
+The Surface plane defines the visual direction of KiteSurf Store, including branding, typography, colours and consistent interface styling.
 
-The final design decisions will be documented here.
+#### Visual Direction
+
+The intended design is a clean, modern storefront inspired by kitesurfing and coastal environments. Product imagery should remain prominent, while navigation, calls to action and form controls should be easy to identify.
+
+#### Typography and Colour
+
+The final font choices and colour values will be recorded after implementation. Text, interactive controls and feedback messages will be reviewed for readability and appropriate contrast.
+
+#### Responsive Design and Accessibility
+
+The interface will be developed for mobile, tablet and desktop screens. Implementation and testing will consider semantic HTML, keyboard access, form labels, visible focus states, validation feedback and layouts without unnecessary horizontal scrolling.
+
+#### Design Scope
+
+Wireframes are planning artefacts. Optional elements shown in a design do not automatically become Must Have features. The scope of implementation is controlled by the [User Stories and Prioritisation](#user-stories-and-prioritisation) section, with price sorting (US22), related products (US23) and Google sign-in (US29) remaining optional.
+
+## AI Tools Usage
+
+### Wireframe Design
+
+ChatGPT was used to generate initial desktop and mobile wireframes
+based on the project's sitemap, functional requirements and UX decisions.
+
+The wireframes were reviewed and refined to establish the layout,
+navigation and responsive behaviour of the application.
