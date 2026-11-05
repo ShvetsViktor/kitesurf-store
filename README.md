@@ -341,32 +341,103 @@ Low-fidelity wireframes were created during PLAN02 to explore the main page layo
 
 The store-page wireframes illustrate the intended layout for product discovery, product details, shopping bag, checkout, order confirmation and customer account management. The implemented interface may be simplified to meet assessment requirements and the available development time.
 
+#### Key Interaction Decisions
+
+- Product cards provide clear paths to product details.
+- Product pages show prices, availability and an add-to-bag action.
+- The shopping bag shows quantities, item totals and the overall total.
+- Checkout collects necessary contact and delivery details and displays an order summary.
+- Payment outcomes provide clear success or failure feedback.
+- Account pages separate personal details, saved addresses and order history.
+
 ### 5. Surface
 
-The Surface plane defines the visual direction of KiteSurf Store, including branding, typography, colours and consistent interface styling.
+The Surface plane establishes the visual identity of KiteSurf Store. The design direction was selected during PLAN02 to create a clear, consistent and accessible shopping experience inspired by coastal environments and kitesurfing.
 
-#### Visual Direction
+#### Visual Design Reference
 
-The intended design is a clean, modern storefront inspired by kitesurfing and coastal environments. Product imagery should remain prominent, while navigation, calls to action and form controls should be easy to identify.
+The visual design reference illustrates the proposed homepage, product detail page, shopping bag, checkout, header, footer and reusable interface elements. It is a concept mockup rather than a screenshot of implemented functionality.
 
-#### Typography and Colour
+![KiteSurf Store visual design concept and style guide](assets/readme/images/kitesurf-store-visual-design.png)
 
-The final font choices and colour values will be recorded after implementation. Text, interactive controls and feedback messages will be reviewed for readability and appropriate contrast.
+The final website will be built with Django templates, Bootstrap 5 and custom CSS. Components shown in the concept image are illustrative; only functionality defined in the prioritised user stories is in scope. In particular, reviews, newsletter subscriptions and other decorative example features are not planned requirements.
+
+#### Colour Palette
+
+A light **Coastal Minimal** palette was selected, using teal as the primary brand colour, complemented by slate, sky blue and neutral backgrounds.
+
+| Role | Colour | HEX | Intended Use |
+| --- | --- | --- | --- |
+| Primary | Teal | `#007F86` | Primary buttons, links and brand accents |
+| Secondary | Slate | `#475569` | Secondary interface details and icons |
+| Accent | Sky Blue | `#38BDF8` | Limited decorative highlights |
+| Background | Cool White | `#F8FAFC` | Main page backgrounds |
+| Surface | White | `#FFFFFF` | Cards, forms and content panels |
+| Headings | Charcoal | `#1E293B` | Headings and prominent text |
+| Body Text | Dark Grey | `#334155` | Paragraphs, labels and descriptions |
+
+White or near-white backgrounds will dominate the interface. The header will use a light background; the footer may use a darker teal treatment for visual separation. Text and interactive states will be checked for sufficient contrast during implementation and testing.
+
+#### Typography
+
+**Inter** was selected for headings, navigation, buttons, form labels and body text. The font will be downloaded and self-hosted within the project's static font directory rather than loaded from a third-party font CDN. The actual font files and their licence will be included or referenced appropriately when added to the repository.
+
+The planned type hierarchy is:
+
+| Element | Planned Style |
+| --- | --- |
+| Main page heading (H1) | Inter Bold, approximately 48px on desktop |
+| Section heading (H2) | Inter SemiBold, approximately 32px on desktop |
+| Subheading (H3) | Inter SemiBold, approximately 24px on desktop |
+| Body text | Inter Regular, approximately 16px |
+
+Font sizes will scale responsively for smaller screens.
+
+#### Branding and Logo
+
+The KiteSurf Store logo was created with **OpenAI ChatGPT image generation** using project-specific instructions. The concept depicts a kitesurfer, kite and waves in the brand's teal colour. Two versions were generated: a horizontal logo with the **KiteSurf Store** wordmark and a standalone symbol without text.
+
+The logos were requested with transparent backgrounds for flexible use in the header and other brand elements. They are AI-generated raster artwork, not manually constructed vector files. Any final assets will be checked for transparency, legibility at small sizes and suitability for web use before deployment.
+
+No existing third-party logo was intentionally copied. AI-generated artwork is not guaranteed to be unique, and references to real equipment brands in the design concept do not imply affiliation or endorsement.
+
+**Primary Logo**
+
+<img src="assets/readme/images/logo.png" alt="KiteSurf Store Primary Logo" width="400">
+
+**Compact Logo**
+
+<img src="assets/readme/images/logo-compact.png" alt="KiteSurf Store Compact Logo" width="120">
+
+#### Interface Components
+
+Bootstrap 5 will provide the base for navigation, responsive grids, buttons, cards, forms and feedback messages. A small custom stylesheet will apply the selected palette, Inter typography and consistent spacing.
+
+- **Header:** Light navigation bar with the brand logo, catalogue navigation, account access and shopping bag access.
+- **Buttons:** Teal primary actions, outlined secondary actions and clearly visible hover, focus and disabled states.
+- **Product cards:** Product image, name, price and availability, with clear navigation to product details.
+- **Forms:** Consistent labels, inputs and validation messages.
+- **Shopping bag and checkout:** Clear order totals, quantity controls and prominent checkout actions.
+- **Footer:** Brand identity and relevant site navigation, without introducing features outside the agreed scope.
 
 #### Responsive Design and Accessibility
 
-The interface will be developed for mobile, tablet and desktop screens. Implementation and testing will consider semantic HTML, keyboard access, form labels, visible focus states, validation feedback and layouts without unnecessary horizontal scrolling.
+The interface will follow a mobile-first approach using Bootstrap 5 responsive utilities and layouts. Navigation, product grids, forms and checkout content will adapt to mobile, tablet and desktop screens.
+
+Implementation and testing will cover semantic HTML, meaningful image alternatives, keyboard navigation, visible focus indicators, associated form labels, validation feedback and adequate colour contrast. The design reference does not itself establish accessibility compliance; this will be verified against the implemented pages.
 
 #### Design Scope
 
-Wireframes are planning artefacts. Optional elements shown in a design do not automatically become Must Have features. The scope of implementation is controlled by the [User Stories and Prioritisation](#user-stories-and-prioritisation) section, with price sorting (US22), related products (US23) and Google sign-in (US29) remaining optional.
+The wireframes and visual design concept are planning artefacts. Optional elements appearing in these images do not become project requirements. Implementation remains governed by the [User Stories and Prioritisation](#user-stories-and-prioritisation) section; price sorting (US22), related products (US23) and Google sign-in (US29) remain optional.
 
 ## AI Tools Usage
 
 ### Wireframe Design
 
-ChatGPT was used to generate initial desktop and mobile wireframes
-based on the project's sitemap, functional requirements and UX decisions.
+OpenAI ChatGPT image generation was used to create initial desktop and mobile wireframes based on the project's sitemap, requirements and UX decisions. The layouts were reviewed and simplified to avoid adding functionality beyond the agreed user stories.
 
-The wireframes were reviewed and refined to establish the layout,
-navigation and responsive behaviour of the application.
+### Logo and Visual Design
+
+OpenAI ChatGPT image generation was also used to create the KiteSurf Store logo concepts, the standalone kitesurfer symbol and the visual style-guide mockup. The user selected the teal-based Coastal Minimal palette and Inter typography after reviewing alternatives. AI-assisted images were used for design exploration; the website's functional interface will be implemented in HTML, CSS, Bootstrap and Django templates rather than embedding the mockup as a page image.
+
+The visual concept includes illustrative product images and names. These are design placeholders, not verified photographs or accurate specifications of products for sale. Any third-party product imagery used in the finished site will require appropriate usage rights and attribution where applicable.
