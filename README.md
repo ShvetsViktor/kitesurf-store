@@ -24,6 +24,8 @@ KiteSurf Store is being developed as an original Django application for the **Ga
 2. [Target Audience](#target-audience)
 3. [User Stories and Prioritisation](#user-stories-and-prioritisation)
 4. [Five Planes of UX](#five-planes-of-ux)
+5. [Database Design](#database-design)
+6. [AI Tools Usage](#ai-tools-usage)
 
 Additional sections will be added as the project develops.
 
@@ -429,6 +431,75 @@ Implementation and testing will cover semantic HTML, meaningful image alternativ
 #### Design Scope
 
 The wireframes and visual design concept are planning artefacts. Optional elements appearing in these images do not become project requirements. Implementation remains governed by the [User Stories and Prioritisation](#user-stories-and-prioritisation) section; price sorting (US22), related products (US23) and Google sign-in (US29) remain optional.
+
+---
+
+## Database Design
+
+KiteSurf Store uses a relational database designed to support product management, customer accounts, saved delivery addresses and online orders.
+
+The planned database contains seven custom Django models:
+
+- `Category`
+- `Product`
+- `ProductImage`
+- `UserProfile`
+- `DeliveryAddress`
+- `Order`
+- `OrderItem`
+
+Django's built-in `User` model handles authentication and is linked to `UserProfile` through a one-to-one relationship.
+
+### Entity Relationship Diagram
+
+![KiteSurf Store Entity Relationship Diagram](assets/readme/images/erd.png)
+
+### Database Relationships
+
+- **Category → Product:** One category can contain multiple products (`PROTECT`).
+- **Product → ProductImage:** One product can have multiple images stored using Cloudinary (`CASCADE`).
+- **Product → OrderItem:** Products referenced by orders are protected from deletion (`PROTECT`).
+- **User → UserProfile:** Each registered customer has one profile.
+- **UserProfile → DeliveryAddress:** Customers can save multiple delivery addresses (`CASCADE`).
+- **UserProfile → Order:** Customers can have multiple orders. Guest orders do not require an account (`SET_NULL`).
+- **Order → OrderItem:** Each order contains purchased products (`CASCADE`).
+
+### Design Decisions
+
+- Each equipment size is represented by a separate `Product` record.
+- Product availability is determined by `stock` and `is_active`.
+- Products can have multiple images, with one primary image per product.
+- Shopping bag contents are stored in Django Sessions rather than a database model.
+- `DeliveryAddress` supports customer-facing CRUD with ownership checks.
+- Orders preserve delivery details, product names, prices and quantities.
+- Guest checkout is supported through an optional relationship between `Order` and `UserProfile`.
+- Stripe Test Mode is used for simulated payments.
+- Planned order statuses are `PENDING`, `PAID`, `CANCELLED` and `EXPIRED`.
+
+### Data Integrity and Payment Handling
+
+Django ORM relationships and database constraints will maintain data consistency.
+
+Product stock will be validated on the server before checkout. Stock will be reserved when a pending order and its Stripe Checkout Session are successfully established.
+
+The application will use four order statuses:
+
+- `PENDING` — Awaiting payment confirmation.
+- `PAID` — Payment successfully confirmed by Stripe.
+- `CANCELLED` — Checkout cancelled and reserved stock released.
+- `EXPIRED` — Stripe Checkout Session expired and reserved stock released.
+
+Payment confirmation will rely on verified Stripe webhooks rather than browser redirects.
+
+Database transactions and idempotent order status transitions will prevent overselling, duplicate payment processing and repeated stock adjustments.
+
+Cancelled or expired checkout sessions will release reserved stock only once. Paid orders will retain their stock deduction.
+
+Historical orders will preserve product names, quantities, prices and delivery details independently of subsequent changes to products, saved addresses or customer accounts.
+
+These rules describe the planned implementation and will be verified during checkout development.
+
+---
 
 ## AI Tools Usage
 
