@@ -25,7 +25,8 @@ KiteSurf Store is being developed as an original Django application for the **Ga
 3. [User Stories and Prioritisation](#user-stories-and-prioritisation)
 4. [Five Planes of UX](#five-planes-of-ux)
 5. [Database Design](#database-design)
-6. [AI Tools Usage](#ai-tools-usage)
+6. [Development](#development)
+7. [AI Tools Usage](#ai-tools-usage)
 
 Additional sections will be added as the project develops.
 
@@ -457,7 +458,7 @@ Django's built-in `User` model handles authentication and is linked to `UserProf
 ### Database Relationships
 
 - **Category → Product:** One category can contain multiple products (`PROTECT`).
-- **Product → ProductImage:** One product can have multiple images stored using Cloudinary (`CASCADE`).
+- **Product → ProductImage:** One product can have multiple images (`CASCADE`). Product images will be stored in Amazon S3.
 - **Product → OrderItem:** Products referenced by orders are protected from deletion (`PROTECT`).
 - **User → UserProfile:** Each registered customer has one profile.
 - **UserProfile → DeliveryAddress:** Customers can save multiple delivery addresses (`CASCADE`).
@@ -500,6 +501,167 @@ Historical orders will preserve product names, quantities, prices and delivery d
 These rules describe the planned implementation and will be verified during checkout development.
 
 ---
+
+## Development
+
+### Development Environment
+
+KiteSurf Store is being developed using Python 3.12.11 and Django 5.2.19.
+
+The application uses Neon PostgreSQL as its development database. SQLite in-memory is configured for fast automated testing.
+
+The production application will be deployed to Heroku, with Amazon S3 used for static files and product images.
+
+### Technologies and Services
+
+| Technology | Purpose |
+| --- | --- |
+| Python 3.12.11 | Backend programming language |
+| Django 5.2.19 | Web application framework |
+| PostgreSQL (Neon) | Development and production database |
+| SQLite in-memory | Fast automated testing |
+| Django Templates | Server-rendered HTML |
+| Bootstrap 5 | Responsive user interface |
+| JavaScript | Client-side functionality |
+| AWS S3 | Planned static and media file storage |
+| Heroku | Planned application hosting |
+| Stripe Test Mode | Planned simulated payment processing |
+
+### Local Setup
+
+To run the project locally:
+
+1. Clone the repository:
+
+   ```bash
+   git clone <repository-url>
+   cd kitesurf_store
+   ```
+
+2. Create a Python 3.12.11 virtual environment:
+
+   ```bash
+   python3.12 -m venv .venv
+   ```
+
+3. Activate the virtual environment:
+
+   **macOS / Linux:**
+
+   ```bash
+   source .venv/bin/activate
+   ```
+
+   **Windows:**
+
+   ```powershell
+   .venv\Scripts\Activate.ps1
+   ```
+
+4. Install dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+5. Create a `.env` file in the project root and configure the required environment variables:
+
+   ```dotenv
+   SECRET_KEY=your-django-secret-key
+   DATABASE_URL=your-neon-postgresql-connection-string
+   DEVELOPMENT=1
+   ```
+
+   Replace the placeholder values with your own credentials.
+
+   The `.env` file is excluded from version control and must never be committed to GitHub.
+
+6. Apply database migrations:
+
+   ```bash
+   python manage.py migrate
+   ```
+
+7. Start the development server:
+
+   ```bash
+   python manage.py runserver
+   ```
+
+   The development server uses the PostgreSQL database configured through `DATABASE_URL`.
+
+### Database Configuration
+
+The application uses Neon PostgreSQL, a managed cloud PostgreSQL service.
+
+Database credentials are stored in environment variables rather than committed to the repository.
+
+Django loads the local `.env` file using `python-dotenv` and configures the database connection using `dj-database-url`.
+
+Initial Django migrations have been applied successfully to the development PostgreSQL database.
+
+### Automated Testing
+
+The project follows a test-driven development approach where practical.
+
+Two database testing configurations are planned:
+
+- **SQLite in-memory:** Fast automated tests during development.
+- **Isolated PostgreSQL test database:** Final database-specific verification before deployment.
+
+The Django settings include a SQLite in-memory configuration for test commands.
+
+Run the automated test suite using:
+
+```bash
+python manage.py test
+```
+
+The initial test command completed successfully with no tests discovered. Application-specific tests will be added as development progresses.
+
+SQLite test isolation and the separate PostgreSQL testing configuration still require verification.
+
+### Environment Variables and Security
+
+Sensitive settings are managed through environment variables.
+
+The following files and directories are excluded from version control:
+
+- `.env` and other local environment files
+- `.venv/`
+- `__pycache__/`
+- Local SQLite database files
+- Generated static and media files
+
+Django's development mode is controlled by the `DEVELOPMENT` environment variable.
+
+The production environment will not define this variable, ensuring that Django debug mode is disabled.
+
+### AWS S3 Configuration
+
+Amazon S3 has been selected for hosting the application's static files and product images.
+
+The initial S3 bucket configuration is being completed using the Code Institute Boutique Ado instructions.
+
+The planned storage configuration will use S3 for:
+
+- CSS files
+- JavaScript files
+- Fonts
+- Website branding assets
+- Product images
+
+Only public website assets will be stored in the public S3 bucket. Customer personal information and other sensitive data will not be uploaded to it.
+
+Integration with Django and verification of static and media file delivery remain outstanding.
+
+### Deployment
+
+The application is planned for deployment to Heroku.
+
+Production configuration will use environment variables for sensitive credentials and service connections.
+
+Deployment instructions and production verification results will be documented once deployment is complete.
 
 ## AI Tools Usage
 
