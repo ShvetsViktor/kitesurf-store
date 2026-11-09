@@ -2,7 +2,7 @@
 
 **Project Status:** In Development
 
-**Live Website:** To be added after deployment.
+**Live Website:** https://kitesurf-store-0b61f643c595.herokuapp.com/
 
 ## Overview
 
@@ -28,7 +28,7 @@ KiteSurf Store is being developed as an original Django application for the **Ga
 6. [Development](#development)
 7. [AI Tools Usage](#ai-tools-usage)
 
-Additional sections will be added as the project develops.
+Additional sections will be added as development progresses.
 
 ---
 
@@ -150,7 +150,7 @@ The requirements are prioritised using the MoSCoW method:
 ### Must Have
 
 | ID | User Story |
-|---|---|
+| --- | --- |
 | US01 | As a visitor, I want to browse products so that I can explore the available kitesurfing equipment. |
 | US02 | As a visitor, I want to view product details so that I can make informed purchasing decisions. |
 | US03 | As a customer, I want to add products to a shopping cart so that I can purchase multiple items together. |
@@ -510,7 +510,7 @@ KiteSurf Store is being developed using Python 3.12.11 and Django 5.2.19.
 
 The application uses Neon PostgreSQL as its development database. SQLite in-memory is configured for fast automated testing.
 
-The production application will be deployed to Heroku, with Amazon S3 used for static files and product images.
+The production application has been deployed to Heroku, with Amazon S3 used for static files and product images. Static file delivery has been verified; product image upload and delivery have not yet been tested.
 
 ### Technologies and Services
 
@@ -523,9 +523,11 @@ The production application will be deployed to Heroku, with Amazon S3 used for s
 | Django Templates | Server-rendered HTML |
 | Bootstrap 5 | Responsive user interface |
 | JavaScript | Client-side functionality |
-| AWS S3 | Planned static and media file storage |
-| Heroku | Planned application hosting |
+| AWS S3 | Static and media file storage (static verified; media pending) |
+| Heroku | Application hosting (initial deployment verified) |
 | Stripe Test Mode | Planned simulated payment processing |
+| django-storages and boto3 | Django integration with Amazon S3 |
+| Gunicorn | Production application server |
 
 ### Local Setup
 
@@ -639,29 +641,57 @@ The production environment will not define this variable, ensuring that Django d
 
 ### AWS S3 Configuration
 
-Amazon S3 has been selected for hosting the application's static files and product images.
+Amazon S3 is configured for public website static assets and future product images. The configuration was adapted from the Code Institute Boutique Ado tutorial for **Django 5.2**, which uses `STORAGES` rather than the removed `STATICFILES_STORAGE` and `DEFAULT_FILE_STORAGE` settings.
 
-The initial S3 bucket configuration is being completed using the Code Institute Boutique Ado instructions.
+#### AWS Resources and Access
 
-The planned storage configuration will use S3 for:
+- S3 bucket created and configured.
+- IAM policy created to permit the required S3 operations.
+- Dedicated IAM user created, with the policy attached directly.
+- AWS access credentials stored as Heroku Config Vars rather than committed to Git.
+- Public website assets are served from S3; personal customer data must not be stored in the public asset locations.
 
-- CSS files
-- JavaScript files
-- Fonts
-- Website branding assets
-- Product images
+Bucket permissions, ownership and CORS were configured during setup. Access should be limited to what is necessary and reviewed before production use.
 
-Only public website assets will be stored in the public S3 bucket. Customer personal information and other sensitive data will not be uploaded to it.
+#### Django Storage Backends
 
-Integration with Django and verification of static and media file delivery remain outstanding.
+The project uses `boto3`, `django-storages` and custom `StaticStorage` and `MediaStorage` backends. When `USE_AWS` is present, Django's `STORAGES` setting routes collected static files to the S3 `static/` prefix and uploaded media to the `media/` prefix. The media path has **not yet been functionally tested**.
+
+#### Verified Static File Delivery — 9 November 2026
+
+| Check | Result |
+| --- | --- |
+| Heroku build | PASS |
+| Gunicorn startup and web dyno | PASS |
+| `collectstatic` | PASS — 127 static files |
+| S3 `static/` files present | PASS |
+| Django Admin accessible | PASS |
+| Django Admin CSS displayed correctly | PASS |
+| Product image upload to S3 | NOT YET TESTED |
+| Product image delivery from S3 | NOT YET TESTED |
+
+These checks confirm the initial static-file pipeline: **Django → collectstatic → Amazon S3 → browser**. They do not yet confirm product media uploads.
 
 ### Deployment
 
-The application is planned for deployment to Heroku.
+KiteSurf Store is deployed to Heroku.
 
-Production configuration will use environment variables for sensitive credentials and service connections.
+**Live Application:** https://kitesurf-store-0b61f643c595.herokuapp.com/
 
-Deployment instructions and production verification results will be documented once deployment is complete.
+**Hosting Platform:** Heroku  
+**Application Server:** Gunicorn  
+**Static and Media Storage:** Amazon S3  
+**Initial Deployment:** 9 November 2026
+
+The initial deployment was completed successfully. Heroku build logs confirmed that Django collected and uploaded 127 static files to Amazon S3.
+
+Application logs confirmed that Gunicorn started successfully and the web dyno entered the `up` state.
+
+The Django Admin interface was verified to load correctly, including CSS assets served from Amazon S3.
+
+**Current limitation:** The root URL (`/`) returns HTTP 404 because the customer-facing homepage has not yet been implemented. This is not a deployment failure. Catalogue, customer accounts, checkout, payments and media uploads remain to be developed and tested.
+
+---
 
 ## AI Tools Usage
 
