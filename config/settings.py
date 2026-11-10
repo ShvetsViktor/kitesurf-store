@@ -28,7 +28,7 @@ load_dotenv(BASE_DIR / '.env')
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ['SECRET_KEY']
 
-DEBUG = 'DEVELOPMENT' in os.environ
+DEBUG = os.environ.get('DEVELOPMENT') == '1'
 
 ALLOWED_HOSTS = [
     'kitesurf-store-0b61f643c595.herokuapp.com',

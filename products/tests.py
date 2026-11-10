@@ -1,9 +1,11 @@
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
+from django.urls import reverse
 
 from .models import Category, Product, ProductImage
 
@@ -204,3 +206,294 @@ class ProductImageModelTests(TestCase):
         self.product.delete()
 
         self.assertEqual(ProductImage.objects.count(), 0)
+
+
+class ProductAdminTests(TestCase):
+    """Test catalogue administration and access permissions."""
+
+    def setUp(self):
+        user_model = get_user_model()
+
+        self.superuser = user_model.objects.create_superuser(
+            username="admin",
+            email="admin@example.com",
+            password="TestPassword123!",
+        )
+
+        self.category = Category.objects.create(
+            name="Kites",
+            slug="kites",
+        )
+
+        self.product = Product.objects.create(
+            category=self.category,
+            sku="KITE-001",
+            name="Test Kite",
+            description="Test description",
+            price=Decimal("100.00"),
+            stock=5,
+        )
+
+    def test_product_is_registered_in_admin(self):
+        """Verify the product changelist is accessible."""
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("admin:products_product_changelist")
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_category_is_registered_in_admin(self):
+        """Verify the category changelist is accessible."""
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("admin:products_category_changelist")
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_anonymous_user_cannot_access_product_admin(self):
+        """Verify anonymous users are redirected to login."""
+        response = self.client.get(
+            reverse("admin:products_product_changelist")
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_non_staff_user_cannot_access_product_admin(self):
+        """Verify non-staff users cannot access product administration."""
+        user_model = get_user_model()
+
+        user = user_model.objects.create_user(
+            username="customer",
+            password="TestPassword123!",
+        )
+
+        self.client.force_login(user)
+
+        response = self.client.get(
+            reverse("admin:products_product_changelist")
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_product_admin_displays_product(self):
+        """Verify products appear in the admin changelist."""
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("admin:products_product_changelist")
+        )
+
+        self.assertContains(response, self.product.name)
+
+    def test_product_admin_has_image_inline(self):
+        """Verify product images can be managed inline."""
+        from django.contrib import admin
+
+        product_admin = admin.site._registry[Product]
+
+        self.assertTrue(
+            any(
+                inline.model is ProductImage
+                for inline in product_admin.inlines
+            )
+        )
+
+    def test_saving_product_preserves_primary_image(self):
+        """Verify editing a product preserves its primary image."""
+        image = ProductImage.objects.create(
+            product=self.product,
+            image="products/primary.jpg",
+            is_primary=True,
+        )
+
+        self.client.force_login(self.superuser)
+
+        response = self.client.post(
+            reverse(
+                "admin:products_product_change",
+                args=[self.product.pk],
+            ),
+            {
+                "category": self.category.pk,
+                "sku": self.product.sku,
+                "name": "Updated Test Kite",
+                "description": self.product.description,
+                "price": "100.00",
+                "stock": "5",
+                "is_active": "on",
+                "images-TOTAL_FORMS": "1",
+                "images-INITIAL_FORMS": "1",
+                "images-MIN_NUM_FORMS": "0",
+                "images-MAX_NUM_FORMS": "1000",
+                "images-0-id": image.pk,
+                "images-0-product": self.product.pk,
+                "images-0-is_primary": "on",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        image.refresh_from_db()
+        self.product.refresh_from_db()
+
+        self.assertTrue(image.is_primary)
+        self.assertEqual(self.product.primary_image, image)
+        self.assertEqual(self.product.name, "Updated Test Kite")
+
+    def test_admin_rejects_multiple_primary_images(self):
+        """Verify admin displays a validation error for two primary images."""
+        first_image = ProductImage.objects.create(
+            product=self.product,
+            image="products/first.jpg",
+            is_primary=True,
+        )
+
+        second_image = ProductImage.objects.create(
+            product=self.product,
+            image="products/second.jpg",
+            is_primary=False,
+        )
+
+        self.client.force_login(self.superuser)
+
+        response = self.client.post(
+            reverse(
+                "admin:products_product_change",
+                args=[self.product.pk],
+            ),
+            {
+                "category": self.category.pk,
+                "sku": self.product.sku,
+                "name": self.product.name,
+                "description": self.product.description,
+                "price": "100.00",
+                "stock": "5",
+                "is_active": "on",
+                "images-TOTAL_FORMS": "2",
+                "images-INITIAL_FORMS": "2",
+                "images-MIN_NUM_FORMS": "0",
+                "images-MAX_NUM_FORMS": "1000",
+                "images-0-id": first_image.pk,
+                "images-0-product": self.product.pk,
+                "images-0-is_primary": "on",
+                "images-1-id": second_image.pk,
+                "images-1-product": self.product.pk,
+                "images-1-is_primary": "on",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Only one primary image is allowed per product.",
+        )
+
+        first_image.refresh_from_db()
+        second_image.refresh_from_db()
+
+        self.assertTrue(first_image.is_primary)
+        self.assertFalse(second_image.is_primary)
+
+    def test_admin_can_switch_primary_image(self):
+        """Verify admin can switch the primary image in one save."""
+        first_image = ProductImage.objects.create(
+            product=self.product,
+            image="products/first.jpg",
+            is_primary=True,
+        )
+
+        second_image = ProductImage.objects.create(
+            product=self.product,
+            image="products/second.jpg",
+            is_primary=False,
+        )
+
+        self.client.force_login(self.superuser)
+
+        response = self.client.post(
+            reverse(
+                "admin:products_product_change",
+                args=[self.product.pk],
+            ),
+            {
+                "category": self.category.pk,
+                "sku": self.product.sku,
+                "name": self.product.name,
+                "description": self.product.description,
+                "price": "100.00",
+                "stock": "5",
+                "is_active": "on",
+                "images-TOTAL_FORMS": "2",
+                "images-INITIAL_FORMS": "2",
+                "images-MIN_NUM_FORMS": "0",
+                "images-MAX_NUM_FORMS": "1000",
+                "images-0-id": first_image.pk,
+                "images-0-product": self.product.pk,
+                "images-1-id": second_image.pk,
+                "images-1-product": self.product.pk,
+                "images-1-is_primary": "on",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        first_image.refresh_from_db()
+        second_image.refresh_from_db()
+
+        self.assertFalse(first_image.is_primary)
+        self.assertTrue(second_image.is_primary)
+        self.assertEqual(self.product.primary_image, second_image)
+
+    def test_admin_can_switch_primary_image_in_reverse_order(self):
+        """Verify primary image switching works regardless of inline order."""
+        first_image = ProductImage.objects.create(
+            product=self.product,
+            image="products/first.jpg",
+            is_primary=False,
+        )
+
+        second_image = ProductImage.objects.create(
+            product=self.product,
+            image="products/second.jpg",
+            is_primary=True,
+        )
+
+        self.client.force_login(self.superuser)
+
+        response = self.client.post(
+            reverse(
+                "admin:products_product_change",
+                args=[self.product.pk],
+            ),
+            {
+                "category": self.category.pk,
+                "sku": self.product.sku,
+                "name": self.product.name,
+                "description": self.product.description,
+                "price": "100.00",
+                "stock": "5",
+                "is_active": "on",
+                "images-TOTAL_FORMS": "2",
+                "images-INITIAL_FORMS": "2",
+                "images-MIN_NUM_FORMS": "0",
+                "images-MAX_NUM_FORMS": "1000",
+                "images-0-id": first_image.pk,
+                "images-0-product": self.product.pk,
+                "images-0-is_primary": "on",
+                "images-1-id": second_image.pk,
+                "images-1-product": self.product.pk,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        first_image.refresh_from_db()
+        second_image.refresh_from_db()
+
+        self.assertTrue(first_image.is_primary)
+        self.assertFalse(second_image.is_primary)
+        self.assertEqual(self.product.primary_image, first_image)
