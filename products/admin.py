@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.contrib import admin
 from django.forms.models import BaseInlineFormSet
+from django.utils.html import format_html
 
 from .models import Category, Product, ProductImage
 
@@ -47,6 +48,19 @@ class ProductImageInline(admin.TabularInline):
     model = ProductImage
     formset = ProductImageInlineFormSet
     extra = 1
+
+    readonly_fields = ("image_preview",)
+    fields = ("image", "image_preview", "is_primary")
+
+    @admin.display(description="Preview")
+    def image_preview(self, obj):
+        """Display a thumbnail of the uploaded image."""
+        if obj.pk and obj.image:
+            return format_html(
+                '<img src="{}" width="100" alt="Product image">',
+                obj.image.url,
+            )
+        return "No image"
 
 
 @admin.register(Product)

@@ -497,3 +497,78 @@ class ProductAdminTests(TestCase):
         self.assertTrue(first_image.is_primary)
         self.assertFalse(second_image.is_primary)
         self.assertEqual(self.product.primary_image, first_image)
+
+    def test_admin_can_delete_primary_image(self):
+        """Verify deleting a primary image preserves other images."""
+        primary_image = ProductImage.objects.create(
+            product=self.product,
+            image="products/primary.jpg",
+            is_primary=True,
+        )
+
+        secondary_image = ProductImage.objects.create(
+            product=self.product,
+            image="products/secondary.jpg",
+            is_primary=False,
+        )
+
+        self.client.force_login(self.superuser)
+
+        response = self.client.post(
+            reverse(
+                "admin:products_product_change",
+                args=[self.product.pk],
+            ),
+            {
+                "category": self.category.pk,
+                "sku": self.product.sku,
+                "name": self.product.name,
+                "description": self.product.description,
+                "price": "100.00",
+                "stock": "5",
+                "is_active": "on",
+                "images-TOTAL_FORMS": "2",
+                "images-INITIAL_FORMS": "2",
+                "images-MIN_NUM_FORMS": "0",
+                "images-MAX_NUM_FORMS": "1000",
+                "images-0-id": primary_image.pk,
+                "images-0-product": self.product.pk,
+                "images-0-is_primary": "on",
+                "images-0-DELETE": "on",
+                "images-1-id": secondary_image.pk,
+                "images-1-product": self.product.pk,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertFalse(
+            ProductImage.objects.filter(pk=primary_image.pk).exists()
+        )
+
+        self.assertTrue(
+            ProductImage.objects.filter(pk=secondary_image.pk).exists()
+        )
+
+        self.assertIsNone(self.product.primary_image)
+
+    def test_product_admin_displays_image_preview(self):
+        """Verify the product admin displays an image thumbnail."""
+        image = ProductImage.objects.create(
+            product=self.product,
+            image="products/test-image.jpg",
+            is_primary=True,
+        )
+
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse(
+                "admin:products_product_change",
+                args=[self.product.pk],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'width="100"')
+        self.assertContains(response, image.image.url)
