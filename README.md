@@ -582,11 +582,39 @@ These rules are implemented through Django model fields, database constraints an
 
 #### Implementation Status
 
-**Status:** Models implemented; migrations and automated model tests pending.
+**Status:** Completed — PLAN05 (10 November 2026).
 
-The three catalogue models have been defined and reviewed against the ERD.
+The catalogue data layer and Django Admin functionality have been implemented and verified.
 
-Database migrations, automated tests and AWS S3 media upload verification will be completed in subsequent development steps.
+Completed work:
+
+- Implemented `Category`, `Product` and `ProductImage` models.
+- Created and applied the `products.0001_initial` migration to Neon PostgreSQL.
+- Implemented database constraints for product prices, unique SKUs and primary image uniqueness.
+- Configured Django Admin for category and product management.
+- Implemented inline product image management.
+- Added validation preventing multiple primary images per product.
+- Implemented safe primary image switching.
+- Verified primary image deletion.
+- Added product image thumbnail previews in Django Admin.
+- Integrated AWS S3 for product image uploads and storage.
+
+**Automated testing:**
+
+- 28 tests passed using SQLite in-memory.
+- Django system checks passed with no issues.
+- Database migration consistency verified.
+
+**Manual testing:**
+
+- Product image uploads to AWS S3 verified.
+- Product image URLs verified.
+- Image thumbnail previews verified in Django Admin.
+- Primary image switching verified.
+
+The primary image switching issue was documented and resolved in GitHub Issue #37.
+
+Customer-facing catalogue views, search, filtering and product detail pages will be implemented in the next development stage.
 
 ## Development
 
@@ -594,9 +622,15 @@ Database migrations, automated tests and AWS S3 media upload verification will b
 
 KiteSurf Store is being developed using Python 3.12.11 and Django 5.2.19.
 
-The application uses Neon PostgreSQL as its development database. SQLite in-memory is configured for fast automated testing.
+The application uses a shared Neon PostgreSQL database for both local development and the deployed Heroku environment.
 
-The production application has been deployed to Heroku, with Amazon S3 used for static files and product images. Static file delivery has been verified; product image upload and delivery have not yet been tested.
+SQLite in-memory is configured separately for fast, isolated automated testing.
+
+The application is deployed to Heroku, with Amazon S3 used for static files and product images.
+
+Static file delivery, product image uploads, image previews and primary image switching have been successfully verified both locally and on Heroku.
+
+The catalogue database models, migrations, Django Admin functionality and AWS S3 media integration were completed during PLAN05.
 
 ### Technologies and Services
 
@@ -604,12 +638,12 @@ The production application has been deployed to Heroku, with Amazon S3 used for 
 | --- | --- |
 | Python 3.12.11 | Backend programming language |
 | Django 5.2.19 | Web application framework |
-| PostgreSQL (Neon) | Development and production database |
+| PostgreSQL (Neon) | Shared development and deployed application database |
 | SQLite in-memory | Fast automated testing |
 | Django Templates | Server-rendered HTML |
 | Bootstrap 5 | Responsive user interface |
 | JavaScript | Client-side functionality |
-| AWS S3 | Static and media file storage (static verified; media pending) |
+| AWS S3 | Static and product media file storage (verified) |
 | Heroku | Application hosting (initial deployment verified) |
 | Stripe Test Mode | Planned simulated payment processing |
 | django-storages and boto3 | Django integration with Amazon S3 |
@@ -622,8 +656,8 @@ To run the project locally:
 1. Clone the repository:
 
    ```bash
-   git clone <repository-url>
-   cd kitesurf_store
+   git clone https://github.com/ShvetsViktor/kitesurf-store.git
+   cd kitesurf-store
    ```
 
 2. Create a Python 3.12.11 virtual environment:
@@ -690,24 +724,86 @@ Initial Django migrations have been applied successfully to the development Post
 
 ### Automated Testing
 
-The project follows a test-driven development approach where practical.
+KiteSurf Store follows a test-driven development (TDD) approach where practical.
 
-Two database testing configurations are planned:
+Automated tests are implemented using Django's built-in testing framework.
 
-- **SQLite in-memory:** Fast automated tests during development.
-- **Isolated PostgreSQL test database:** Final database-specific verification before deployment.
+#### Test Database
 
-The Django settings include a SQLite in-memory configuration for test commands.
+The project uses SQLite in-memory for automated testing.
 
-Run the automated test suite using:
+This configuration provides fast, isolated test execution without modifying the Neon PostgreSQL development database.
+
+Database migrations are applied automatically when the test database is created.
+
+#### Running Tests
+
+Run the complete Django test suite:
 
 ```bash
 python manage.py test
 ```
 
-The initial test command completed successfully with no tests discovered. Application-specific tests will be added as development progresses.
+Run product application tests:
 
-SQLite test isolation and the separate PostgreSQL testing configuration still require verification.
+```bash
+python manage.py test products --verbosity=2
+```
+
+Check Django configuration:
+
+```bash
+python manage.py check
+```
+
+Check migration consistency:
+
+```bash
+python manage.py makemigrations --check --dry-run
+```
+
+#### PLAN05 Test Results — 10 November 2026
+
+| Test Group | Tests | Result |
+| --- | ---: | --- |
+| Category model | 4 | PASS |
+| Product model | 8 | PASS |
+| ProductImage model | 4 | PASS |
+| Django Admin | 12 | PASS |
+| **Total** | **28** | **PASS** |
+
+Additional verification:
+
+| Check | Result |
+| --- | --- |
+| Django system checks | PASS — 0 issues |
+| SQLite in-memory test database | PASS |
+| Initial catalogue migration | PASS |
+| Migration consistency | PASS |
+| AWS S3 product image uploads | PASS — manual verification |
+| AWS S3 product media delivery on Heroku | PASS — manual verification |
+| Django Admin image previews | PASS — automated and manual verification |
+| Primary image switching | PASS — automated and manual verification |
+
+**Final result:** 28 automated tests passed in 1.165 seconds.
+
+#### TDD Regression Testing
+
+During Django Admin development, automated tests identified two issues:
+
+1. Selecting multiple primary images caused a database `IntegrityError`.
+2. Switching the primary image could violate the database uniqueness constraint depending on inline form save order.
+
+The issues were resolved by:
+
+- Implementing custom inline formset validation.
+- Updating the product admin formset saving logic.
+- Preserving database-level uniqueness constraints.
+- Adding regression tests for both primary image switching orders.
+
+The bug was documented in GitHub Issue #37 and closed after successful regression testing.
+
+Additional automated tests will be added as customer-facing functionality is implemented.
 
 ### Environment Variables and Security
 
@@ -727,7 +823,7 @@ The production environment will not define this variable, ensuring that Django d
 
 ### AWS S3 Configuration
 
-Amazon S3 is configured for public website static assets and future product images. The configuration was adapted from the Code Institute Boutique Ado tutorial for **Django 5.2**, which uses `STORAGES` rather than the removed `STATICFILES_STORAGE` and `DEFAULT_FILE_STORAGE` settings.
+Amazon S3 is configured for website static assets and uploaded product images. The configuration was adapted from the Code Institute Boutique Ado tutorial for **Django 5.2**, which uses `STORAGES` rather than the removed `STATICFILES_STORAGE` and `DEFAULT_FILE_STORAGE` settings.
 
 #### AWS Resources and Access
 
@@ -741,7 +837,11 @@ Bucket permissions, ownership and CORS were configured during setup. Access shou
 
 #### Django Storage Backends
 
-The project uses `boto3`, `django-storages` and custom `StaticStorage` and `MediaStorage` backends. When `USE_AWS` is present, Django's `STORAGES` setting routes collected static files to the S3 `static/` prefix and uploaded media to the `media/` prefix. The media path has **not yet been functionally tested**.
+The project uses `boto3`, `django-storages` and custom `StaticStorage` and `MediaStorage` backends.
+
+When `USE_AWS` is enabled, Django's `STORAGES` setting routes collected static files to the S3 `static/` prefix and uploaded product images to the `media/products/` prefix.
+
+Product image uploads and retrieval have been manually verified through Django Admin.
 
 #### Verified Static File Delivery — 9 November 2026
 
@@ -757,6 +857,23 @@ The project uses `boto3`, `django-storages` and custom `StaticStorage` and `Medi
 | Product image delivery from S3 | NOT YET TESTED |
 
 These checks confirm the initial static-file pipeline: **Django → collectstatic → Amazon S3 → browser**. They do not yet confirm product media uploads.
+
+#### Verified Product Media Storage — 10 November 2026
+
+| Check | Result |
+| --- | --- |
+| Product image upload through Django Admin | PASS |
+| Product image stored in AWS S3 | PASS |
+| Product image URL generated correctly | PASS |
+| Product image accessible through its media URL | PASS |
+| Product image thumbnail displayed in Django Admin | PASS |
+| Primary image switching | PASS |
+| Primary image deletion | PASS — automated test |
+| Static file delivery remains operational | PASS |
+
+These checks confirm that product images can be uploaded, stored and retrieved using the configured AWS S3 media backend.
+
+The implementation supports multiple images per product while enforcing a maximum of one primary image.
 
 ### Deployment
 
@@ -775,7 +892,13 @@ Application logs confirmed that Gunicorn started successfully and the web dyno e
 
 The Django Admin interface was verified to load correctly, including CSS assets served from Amazon S3.
 
-**Current limitation:** The root URL (`/`) returns HTTP 404 because the customer-facing homepage has not yet been implemented. This is not a deployment failure. Catalogue, customer accounts, checkout, payments and media uploads remain to be developed and tested.
+**Current limitation:** The root URL (`/`) returns HTTP 404 because the customer-facing homepage has not yet been implemented. This is not a deployment failure.
+
+The catalogue models, Django Admin and AWS S3 product media integration have been implemented and tested successfully in both local development and the deployed Heroku environment.
+
+Product image uploads, image previews and primary image switching were manually verified through Django Admin.
+
+Customer-facing catalogue pages, customer accounts, checkout and payments remain to be developed.
 
 ---
 
