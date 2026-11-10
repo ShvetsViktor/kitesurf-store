@@ -502,6 +502,92 @@ These rules describe the planned implementation and will be verified during chec
 
 ---
 
+### Catalogue Models Implementation
+
+The catalogue database models were implemented during PLAN05 using Django ORM.
+
+Three custom models have been defined in `products/models.py`:
+
+- `Category`
+- `Product`
+- `ProductImage`
+
+The implementation follows the Entity Relationship Diagram (ERD), with additional model-level constraints and properties to support catalogue functionality.
+
+#### Category
+
+The `Category` model organises products into equipment categories.
+
+- `name` — unique category name.
+- `slug` — unique URL-friendly identifier.
+- `description` — optional category description.
+
+Categories are ordered alphabetically by name.
+
+#### Product
+
+The `Product` model stores equipment information, pricing, stock availability and catalogue visibility.
+
+- `category` — required foreign key to `Category`, using `PROTECT`.
+- `sku` — required unique product identifier.
+- `name` — product name.
+- `description` — product description.
+- `price` — product price in GBP.
+- `stock` — available quantity, defaulting to zero.
+- `is_active` — controls catalogue visibility.
+- `created_at` — automatically records creation time.
+- `updated_at` — automatically records modification time.
+
+Each equipment size is represented by a separate product record with its own SKU, price and stock quantity.
+
+Product detail pages will use database IDs rather than product slugs.
+
+The model includes:
+
+- `primary_image` — returns the primary product image, if available.
+- `is_available` — returns `True` when the product is active and has stock.
+- `CheckConstraint` — requires product prices to be greater than zero.
+
+Products are ordered by creation date, newest first.
+
+#### ProductImage
+
+The `ProductImage` model supports multiple images for each product.
+
+- `product` — foreign key to `Product`, using `CASCADE`.
+- `image` — Django `ImageField` configured to upload to `products/`.
+- `is_primary` — identifies the primary product image.
+
+A conditional `UniqueConstraint` prevents more than one image from being marked as primary for the same product.
+
+Product images will use Amazon S3 when the configured AWS storage backend is enabled.
+
+#### Catalogue Data Integrity
+
+The models implement the following rules:
+
+- Every product must belong to a category.
+- Categories containing products cannot be deleted.
+- Each product must have a unique SKU.
+- Product prices must be greater than zero.
+- Stock quantities cannot be negative.
+- Product availability is determined by stock quantity and active status.
+- Out-of-stock products can remain visible in the catalogue.
+- Inactive products will be excluded from the public catalogue.
+- Each product can have multiple images but no more than one primary image.
+- Deleting a product cascades to its related `ProductImage` database records.
+- Products referenced by historical orders will be protected from deletion when the `OrderItem` relationship is implemented.
+
+These rules are implemented through Django model fields, database constraints and model properties. Catalogue filtering and access behaviour will be implemented and tested in subsequent development tasks.
+
+#### Implementation Status
+
+**Status:** Models implemented; migrations and automated model tests pending.
+
+The three catalogue models have been defined and reviewed against the ERD.
+
+Database migrations, automated tests and AWS S3 media upload verification will be completed in subsequent development steps.
+
 ## Development
 
 ### Development Environment
