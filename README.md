@@ -336,11 +336,11 @@ Low-fidelity wireframes were created during PLAN02 to explore the main page layo
 
 **Home page wireframe**
 
-![KiteSurf Store home page wireframe](assets/readme/wireframes/home.jpg)
+![KiteSurf Store home page wireframe](assets/readme/wireframes/home.webp)
 
 **Store pages wireframes**
 
-![KiteSurf Store catalogue, product, cart, checkout, confirmation and account wireframes](assets/readme/wireframes/store-pages-wireframes.png)
+![KiteSurf Store catalogue, product, cart, checkout, confirmation and account wireframes](assets/readme/wireframes/store-pages-wireframes.webp)
 
 The store-page wireframes illustrate the intended layout for product discovery, product details, shopping bag, checkout, order confirmation and customer account management. The implemented interface may be simplified to meet assessment requirements and the available development time.
 
@@ -361,7 +361,7 @@ The Surface plane establishes the visual identity of KiteSurf Store. The design 
 
 The visual design reference illustrates the proposed homepage, product detail page, shopping bag, checkout, header, footer and reusable interface elements. It is a concept mockup rather than a screenshot of implemented functionality.
 
-![KiteSurf Store visual design concept and style guide](assets/readme/images/kitesurf-store-visual-design.png)
+![KiteSurf Store visual design concept and style guide](assets/readme/images/kitesurf-store-visual-design.webp)
 
 The final website will be built with Django templates, Bootstrap 5 and custom CSS. Components shown in the concept image are illustrative; only functionality defined in the prioritised user stories is in scope. In particular, reviews, newsletter subscriptions and other decorative example features are not planned requirements.
 
@@ -383,7 +383,9 @@ White or near-white backgrounds will dominate the interface. The header will use
 
 #### Typography
 
-**Inter** was selected for headings, navigation, buttons, form labels and body text. The font will be downloaded and self-hosted within the project's static font directory rather than loaded from a third-party font CDN. The actual font files and their licence will be included or referenced appropriately when added to the repository.
+**Inter** is used for headings, navigation, buttons, form labels and body text. The Inter variable font is self-hosted in `static/fonts/InterVariable.woff2` rather than loaded from a third-party font CDN.
+
+The font was integrated during PLAN06 and its delivery through Amazon S3 was verified in the browser. The SIL Open Font License 1.1 is retained in `static/fonts/LICENSE.txt`.
 
 The planned type hierarchy is:
 
@@ -406,11 +408,11 @@ No existing third-party logo was intentionally copied. AI-generated artwork is n
 
 **Primary Logo**
 
-<img src="assets/readme/images/logo.png" alt="KiteSurf Store Primary Logo" width="400">
+<img src="assets/readme/images/logo.webp" alt="KiteSurf Store Primary Logo" width="400">
 
 **Compact Logo**
 
-<img src="assets/readme/images/logo-compact.png" alt="KiteSurf Store Compact Logo" width="120">
+<img src="assets/readme/images/logo-compact.webp" alt="KiteSurf Store Compact Logo" width="120">
 
 #### Interface Components
 
@@ -453,7 +455,7 @@ Django's built-in `User` model handles authentication and is linked to `UserProf
 
 ### Entity Relationship Diagram
 
-![KiteSurf Store Entity Relationship Diagram](assets/readme/images/erd.png)
+![KiteSurf Store Entity Relationship Diagram](assets/readme/images/erd.webp)
 
 ### Database Relationships
 
@@ -631,6 +633,85 @@ The application is deployed to Heroku, with Amazon S3 used for static files and 
 Static file delivery, product image uploads, image previews and primary image switching have been successfully verified both locally and on Heroku.
 
 The catalogue database models, migrations, Django Admin functionality and AWS S3 media integration were completed during PLAN05.
+
+### Shared Layout and Design System
+
+**Status:** Completed — PLAN06 (11 November 2026).
+
+The shared layout and design system were implemented using Django Templates, Bootstrap 5.3.3 and custom CSS.
+
+#### Template Structure
+
+The application uses reusable Django templates to provide consistent navigation and styling across pages.
+
+- `templates/base.html` — shared HTML structure, Bootstrap integration and reusable template blocks.
+- `templates/includes/header.html` — responsive navigation and brand logos.
+- `templates/includes/footer.html` — shared footer.
+- `templates/home.html` — homepage extending the base template.
+- `config/views.py` — homepage view.
+- `config/urls.py` — homepage URL configuration.
+
+The homepage is available at `/`.
+
+#### Responsive Navigation
+
+The header uses Bootstrap's responsive navbar component.
+
+- Below 576px: compact logo and collapsible navigation menu.
+- From 576px: full logo and horizontal navigation.
+- The navigation toggle opens and closes the mobile menu.
+- The brand logo links to the homepage.
+
+Both logo variants use optimised WebP images stored in `static/images/`.
+
+#### Design System
+
+The shared stylesheet is located at `static/css/styles.css`.
+
+Implemented styling includes:
+
+- Coastal Minimal colour palette defined through CSS custom properties.
+- Self-hosted Inter variable font.
+- Responsive heading typography.
+- Customised Bootstrap primary and outline-primary buttons.
+- Consistent navigation and footer styling.
+- Visible keyboard focus indicators.
+
+The Inter font is stored in `static/fonts/InterVariable.woff2`.
+
+The font is distributed under the SIL Open Font License 1.1, with the licence retained in `static/fonts/LICENSE.txt`.
+
+#### Static Asset Delivery
+
+Static assets are collected using Django's `collectstatic` command and uploaded to Amazon S3 when AWS storage is enabled.
+
+The following assets have been verified:
+
+- Custom CSS stylesheet.
+- Inter variable font.
+- Primary WebP logo.
+- Compact WebP logo.
+
+The Inter font was confirmed to load successfully from Amazon S3 in the browser.
+
+#### Testing and Verification
+
+| Check | Result |
+| --- | --- |
+| Django automated tests | PASS — 38 tests |
+| Django system checks | PASS — 0 issues |
+| Homepage rendering | PASS |
+| Shared template rendering | PASS |
+| Header and footer rendering | PASS |
+| Responsive navigation | PASS — manual verification |
+| Mobile menu toggle | PASS — manual verification |
+| Brand logo display | PASS — manual verification |
+| Inter font delivery from AWS S3 | PASS |
+| Static file collection | PASS |
+
+Primary and outline-primary button styles have been implemented but have not yet been visually verified on a page containing these buttons.
+
+**Result:** The shared layout and design system are implemented and ready for use by subsequent application features.
 
 ### Technologies and Services
 
@@ -892,7 +973,9 @@ Application logs confirmed that Gunicorn started successfully and the web dyno e
 
 The Django Admin interface was verified to load correctly, including CSS assets served from Amazon S3.
 
-**Current limitation:** The root URL (`/`) returns HTTP 404 because the customer-facing homepage has not yet been implemented. This is not a deployment failure.
+The customer-facing homepage has been implemented and verified locally during PLAN06. The shared layout includes responsive navigation, brand logos and a footer.
+
+The homepage and shared layout will be verified on Heroku after the PLAN06 feature branch is merged and deployed.
 
 The catalogue models, Django Admin and AWS S3 product media integration have been implemented and tested successfully in both local development and the deployed Heroku environment.
 

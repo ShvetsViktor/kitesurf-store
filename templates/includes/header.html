@@ -1,0 +1,41 @@
+{% load static %}
+<nav class="navbar navbar-expand-sm bg-white border-bottom" aria-label="Main navigation">
+    <div class="container">
+        <a
+            class="navbar-brand"
+            href="{% url 'home' %}"
+            aria-label="KiteSurf Store homepage"
+        >
+            <img
+                src="{% static 'images/logo.webp' %}"
+                alt="KiteSurf Store"
+                class="brand-logo d-none d-sm-block"
+            >
+            <img
+                src="{% static 'images/logo-compact.webp' %}"
+                alt=""
+                class="brand-logo-compact d-sm-none"
+            >
+        </a>
+
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#mainNavbar"
+            aria-controls="mainNavbar"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+        >
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}">Home</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
