@@ -655,3 +655,21 @@ class ProductCatalogueQueryTests(TestCase):
             self.out_of_stock_product,
             response.context["products"],
         )
+
+    def test_active_product_name_is_displayed(self):
+        """Verify active product names appear in the catalogue."""
+        response = self.client.get(reverse("product_list"))
+
+        self.assertContains(response, self.active_product.name)
+
+    def test_active_product_price_is_displayed(self):
+        """Verify active product prices appear in the catalogue."""
+        response = self.client.get(reverse("product_list"))
+
+        self.assertContains(response, "500.00")
+
+    def test_out_of_stock_product_is_labelled(self):
+        """Verify unavailable products display an out-of-stock label."""
+        response = self.client.get(reverse("product_list"))
+
+        self.assertContains(response, "Out of stock")
