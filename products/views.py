@@ -1,3 +1,6 @@
 from django.shortcuts import render
 
-# Create your views here.
+
+def product_list(request):
+    """Display the public product catalogue."""
+    return render(request, "products/product_list.html")

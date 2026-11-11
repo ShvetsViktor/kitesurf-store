@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models.deletion import ProtectedError
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
 from .models import Category, Product, ProductImage
@@ -572,3 +572,19 @@ class ProductAdminTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'width="100"')
         self.assertContains(response, image.image.url)
+
+
+class ProductCatalogueViewTests(SimpleTestCase):
+    """Test the public product catalogue page."""
+
+    def test_product_catalogue_page_returns_200(self):
+        """Verify visitors can access the catalogue page."""
+        response = self.client.get(reverse("product_list"))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_product_catalogue_uses_correct_template(self):
+        """Verify the catalogue uses the expected template."""
+        response = self.client.get(reverse("product_list"))
+
+        self.assertTemplateUsed(response, "products/product_list.html")
