@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models.deletion import ProtectedError
-from django.test import SimpleTestCase, TestCase
+from django.test import TestCase
 from django.urls import reverse
 
 from .models import Category, Product, ProductImage
@@ -574,7 +574,7 @@ class ProductAdminTests(TestCase):
         self.assertContains(response, image.image.url)
 
 
-class ProductCatalogueViewTests(SimpleTestCase):
+class ProductCatalogueViewTests(TestCase):
     """Test the public product catalogue page."""
 
     def test_product_catalogue_page_returns_200(self):
@@ -588,3 +588,70 @@ class ProductCatalogueViewTests(SimpleTestCase):
         response = self.client.get(reverse("product_list"))
 
         self.assertTemplateUsed(response, "products/product_list.html")
+
+
+class ProductCatalogueQueryTests(TestCase):
+    """Test product visibility in the public catalogue."""
+
+    def setUp(self):
+        self.category = Category.objects.create(
+            name="Kites",
+            slug="kites",
+        )
+
+        self.active_product = Product.objects.create(
+            category=self.category,
+            sku="KITE-001",
+            name="Active Kite",
+            description="Test description",
+            price=Decimal("500.00"),
+            stock=5,
+            is_active=True,
+        )
+
+        self.inactive_product = Product.objects.create(
+            category=self.category,
+            sku="KITE-002",
+            name="Inactive Kite",
+            description="Test description",
+            price=Decimal("600.00"),
+            stock=5,
+            is_active=False,
+        )
+
+        self.out_of_stock_product = Product.objects.create(
+            category=self.category,
+            sku="KITE-003",
+            name="Out of Stock Kite",
+            description="Test description",
+            price=Decimal("700.00"),
+            stock=0,
+            is_active=True,
+        )
+
+    def test_active_products_are_in_catalogue(self):
+        """Verify active products are included in the catalogue."""
+        response = self.client.get(reverse("product_list"))
+
+        self.assertIn(
+            self.active_product,
+            response.context["products"],
+        )
+
+    def test_inactive_products_are_excluded(self):
+        """Verify inactive products are hidden from the catalogue."""
+        response = self.client.get(reverse("product_list"))
+
+        self.assertNotIn(
+            self.inactive_product,
+            response.context["products"],
+        )
+
+    def test_out_of_stock_products_remain_visible(self):
+        """Verify active products with zero stock remain in the catalogue."""
+        response = self.client.get(reverse("product_list"))
+
+        self.assertIn(
+            self.out_of_stock_product,
+            response.context["products"],
+        )
