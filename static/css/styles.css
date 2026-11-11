@@ -1,0 +1,43 @@
+:root {
+    --color-primary: #007f86;
+    --color-slate: #475569;
+    --color-sky: #38bdf8;
+    --color-background: #f8fafc;
+    --color-surface: #ffffff;
+    --color-heading: #1e293b;
+    --color-body: #334155;
+}
+
+body {
+    background-color: var(--color-background);
+    color: var(--color-body);
+}
+
+.navbar-brand {
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+.navbar-brand:hover,
+.navbar-brand:focus {
+    color: var(--color-heading);
+}
+
+.nav-link {
+    color: var(--color-slate);
+}
+
+.nav-link:hover,
+.nav-link:focus {
+    color: var(--color-primary);
+}
+
+.site-footer {
+    background-color: var(--color-surface);
+    color: var(--color-slate);
+}
+
+:focus-visible {
+    outline: 3px solid var(--color-sky);
+    outline-offset: 3px;
+}
