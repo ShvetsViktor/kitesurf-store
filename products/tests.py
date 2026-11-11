@@ -673,3 +673,27 @@ class ProductCatalogueQueryTests(TestCase):
         response = self.client.get(reverse("product_list"))
 
         self.assertContains(response, "Out of stock")
+
+    def test_product_without_image_displays_fallback(self):
+        """Verify products without images display the fallback image."""
+        response = self.client.get(reverse("product_list"))
+
+        self.assertContains(
+            response,
+            "default-image-fallback.webp",
+        )
+
+    def test_product_primary_image_is_displayed(self):
+        """Verify the catalogue displays a product's primary image."""
+        ProductImage.objects.create(
+            product=self.active_product,
+            image="products/test-kite.webp",
+            is_primary=True,
+        )
+
+        response = self.client.get(reverse("product_list"))
+
+        self.assertContains(
+            response,
+            "products/test-kite.webp",
+        )

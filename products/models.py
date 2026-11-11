@@ -40,7 +40,10 @@ class Product(models.Model):
 
     @property
     def primary_image(self):
-        return self.images.filter(is_primary=True).first()
+        return next(
+            (image for image in self.images.all() if image.is_primary),
+            None,
+        )
 
     @property
     def is_available(self):
