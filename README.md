@@ -336,11 +336,11 @@ Low-fidelity wireframes were created during PLAN02 to explore the main page layo
 
 **Home page wireframe**
 
-![KiteSurf Store home page wireframe](assets/readme/wireframes/home.jpg)
+![KiteSurf Store home page wireframe](assets/readme/wireframes/home.webp)
 
 **Store pages wireframes**
 
-![KiteSurf Store catalogue, product, cart, checkout, confirmation and account wireframes](assets/readme/wireframes/store-pages-wireframes.png)
+![KiteSurf Store catalogue, product, cart, checkout, confirmation and account wireframes](assets/readme/wireframes/store-pages-wireframes.webp)
 
 The store-page wireframes illustrate the intended layout for product discovery, product details, shopping bag, checkout, order confirmation and customer account management. The implemented interface may be simplified to meet assessment requirements and the available development time.
 
@@ -361,7 +361,7 @@ The Surface plane establishes the visual identity of KiteSurf Store. The design 
 
 The visual design reference illustrates the proposed homepage, product detail page, shopping bag, checkout, header, footer and reusable interface elements. It is a concept mockup rather than a screenshot of implemented functionality.
 
-![KiteSurf Store visual design concept and style guide](assets/readme/images/kitesurf-store-visual-design.png)
+![KiteSurf Store visual design concept and style guide](assets/readme/images/kitesurf-store-visual-design.webp)
 
 The final website will be built with Django templates, Bootstrap 5 and custom CSS. Components shown in the concept image are illustrative; only functionality defined in the prioritised user stories is in scope. In particular, reviews, newsletter subscriptions and other decorative example features are not planned requirements.
 
@@ -406,11 +406,11 @@ No existing third-party logo was intentionally copied. AI-generated artwork is n
 
 **Primary Logo**
 
-<img src="assets/readme/images/logo.png" alt="KiteSurf Store Primary Logo" width="400">
+<img src="assets/readme/images/logo.webp" alt="KiteSurf Store Primary Logo" width="400">
 
 **Compact Logo**
 
-<img src="assets/readme/images/logo-compact.png" alt="KiteSurf Store Compact Logo" width="120">
+<img src="assets/readme/images/logo-compact.webp" alt="KiteSurf Store Compact Logo" width="120">
 
 #### Interface Components
 
@@ -453,7 +453,7 @@ Django's built-in `User` model handles authentication and is linked to `UserProf
 
 ### Entity Relationship Diagram
 
-![KiteSurf Store Entity Relationship Diagram](assets/readme/images/erd.png)
+![KiteSurf Store Entity Relationship Diagram](assets/readme/images/erd.webp)
 
 ### Database Relationships
 
