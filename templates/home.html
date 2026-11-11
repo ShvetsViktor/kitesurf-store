@@ -1,7 +1,32 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Home | KiteSurf Store{% endblock %}
 
 {% block content %}
-    <h1>Welcome to KiteSurf Store</h1>
+
+<section class="container py-5">
+    <div class="row align-items-center g-4">
+        <div class="col-12 col-lg-6">
+            <h1>Welcome to KiteSurf Store</h1>
+            <p class="lead">
+                Discover quality kitesurfing equipment for your next adventure.
+            </p>
+            <a href="{% url 'product_list' %}" class="btn btn-primary">
+                Shop Now
+            </a>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <img
+                src="{% static 'images/default-image-fallback.webp' %}"
+                alt="Kitesurfing equipment"
+                class="img-fluid"
+                width="600"
+                height="600"
+            >
+        </div>
+    </div>
+</section>
+
 {% endblock %}
