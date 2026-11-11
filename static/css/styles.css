@@ -1,3 +1,15 @@
+/* Fonts */
+
+@font-face {
+    font-family: "Inter";
+    src: url("../fonts/InterVariable.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+}
+
+/* Design tokens */
+
 :root {
     --color-primary: #007f86;
     --color-slate: #475569;
@@ -8,12 +20,48 @@
     --color-body: #334155;
 }
 
+/* Base styles */
+
 body {
+    font-family: "Inter", Arial, sans-serif;
     background-color: var(--color-background);
     color: var(--color-body);
 }
 
+/* Typography */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: var(--color-heading);
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+}
+
+h2 {
+    font-size: clamp(1.75rem, 3vw, 2rem);
+}
+
+h3 {
+    font-size: 1.5rem;
+}
+
+p {
+    line-height: 1.6;
+}
+
+/* Header and navigation */
+
 .navbar-brand {
+    display: inline-flex;
+    align-items: center;
     color: var(--color-primary);
     font-weight: 700;
 }
@@ -32,22 +80,7 @@ body {
     color: var(--color-primary);
 }
 
-.site-footer {
-    background-color: var(--color-surface);
-    color: var(--color-slate);
-}
-
-:focus-visible {
-    outline: 3px solid var(--color-sky);
-    outline-offset: 3px;
-}
-
 /* Brand logos */
-
-.navbar-brand {
-    display: inline-flex;
-    align-items: center;
-}
 
 .brand-logo {
     width: auto;
@@ -57,4 +90,51 @@ body {
 .brand-logo-compact {
     width: auto;
     height: 40px;
+}
+
+/* Buttons */
+
+.btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--color-primary);
+    --bs-btn-border-color: var(--color-primary);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #006b71;
+    --bs-btn-hover-border-color: #006b71;
+    --bs-btn-focus-shadow-rgb: 0, 127, 134;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #00585d;
+    --bs-btn-active-border-color: #00585d;
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: var(--color-primary);
+    --bs-btn-disabled-border-color: var(--color-primary);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--color-primary);
+    --bs-btn-border-color: var(--color-primary);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--color-primary);
+    --bs-btn-hover-border-color: var(--color-primary);
+    --bs-btn-focus-shadow-rgb: 0, 127, 134;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #006b71;
+    --bs-btn-active-border-color: #006b71;
+    --bs-btn-disabled-color: var(--color-primary);
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: var(--color-primary);
+}
+
+/* Footer */
+
+.site-footer {
+    background-color: var(--color-surface);
+    color: var(--color-slate);
+}
+
+/* Accessibility */
+
+:focus-visible {
+    outline: 3px solid var(--color-sky);
+    outline-offset: 3px;
 }
