@@ -87,3 +87,11 @@ class HomePageTests(TestCase):
 
         self.assertContains(response, 'navbar-toggler')
         self.assertContains(response, 'data-bs-toggle="collapse"')
+
+    def test_homepage_contains_brand_logos(self):
+        """The header should contain desktop and mobile brand logos."""
+        response = self.client.get(reverse('home'))
+
+        self.assertContains(response, 'images/logo.webp')
+        self.assertContains(response, 'images/logo-compact.webp')
+        self.assertContains(response, 'alt="KiteSurf Store"')

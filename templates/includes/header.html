@@ -1,7 +1,21 @@
+{% load static %}
 <nav class="navbar navbar-expand-lg bg-white border-bottom" aria-label="Main navigation">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'home' %}">
-            KiteSurf Store
+        <a
+            class="navbar-brand"
+            href="{% url 'home' %}"
+            aria-label="KiteSurf Store homepage"
+        >
+            <img
+                src="{% static 'images/logo.webp' %}"
+                alt="KiteSurf Store"
+                class="brand-logo d-none d-sm-block"
+            >
+            <img
+                src="{% static 'images/logo-compact.webp' %}"
+                alt=""
+                class="brand-logo-compact d-sm-none"
+            >
         </a>
 
         <button

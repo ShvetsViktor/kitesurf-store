@@ -41,3 +41,20 @@ body {
     outline: 3px solid var(--color-sky);
     outline-offset: 3px;
 }
+
+/* Brand logos */
+
+.navbar-brand {
+    display: inline-flex;
+    align-items: center;
+}
+
+.brand-logo {
+    width: auto;
+    height: 48px;
+}
+
+.brand-logo-compact {
+    width: auto;
+    height: 40px;
+}
