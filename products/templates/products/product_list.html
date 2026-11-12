@@ -13,24 +13,52 @@
         role="search"
         class="mb-4"
     >
-        <div class="input-group">
-            <label for="product-search" class="visually-hidden">
-                Search products
-            </label>
-
-            <input
-                type="search"
-                id="product-search"
-                name="q"
-                value="{{ query }}"
-                class="form-control"
-                placeholder="Search products by name"
-                aria-label="Search products by name"
-            >
-
-            <button type="submit" class="btn btn-primary">
-                Search
-            </button>
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <label for="product-search" class="visually-hidden">
+                    Search products
+                </label>
+        
+                <input
+                    type="search"
+                    id="product-search"
+                    name="q"
+                    value="{{ query }}"
+                    class="form-control"
+                    placeholder="Search products by name"
+                    aria-label="Search products by name"
+                >
+            </div>
+        
+            <div class="col-12 col-md-4">
+                <label for="category-filter" class="visually-hidden">
+                    Filter by category
+                </label>
+        
+                <select
+                    id="category-filter"
+                    name="category"
+                    class="form-select"
+                    aria-label="Filter by category"
+                >
+                    <option value="">All categories</option>
+        
+                    {% for category in categories %}
+                        <option
+                            value="{{ category.slug }}"
+                            {% if category.slug == selected_category %}selected{% endif %}
+                        >
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        
+            <div class="col-12 col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    Search
+                </button>
+            </div>
         </div>
     </form>
 

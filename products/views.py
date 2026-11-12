@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from .models import Product
+from .models import Category, Product
 
 
 def product_list(request):
@@ -8,6 +8,8 @@ def product_list(request):
     products = Product.objects.filter(
         is_active=True
     ).prefetch_related("images")
+
+    categories = Category.objects.all()
 
     query = request.GET.get("q", "").strip()
     category = request.GET.get("category", "").strip()
@@ -23,6 +25,8 @@ def product_list(request):
         "products/product_list.html",
         {
             "products": products,
+            "categories": categories,
             "query": query,
+            "selected_category": category,
         },
     )
