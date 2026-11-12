@@ -978,15 +978,15 @@ The Django Admin interface was verified to load correctly, including CSS assets 
 
 The customer-facing homepage has been implemented and verified locally during PLAN06. The shared layout includes responsive navigation, brand logos and a footer.
 
-The homepage and shared layout will be verified on Heroku after the PLAN06 feature branch is merged and deployed.
+The homepage and shared layout have been deployed and verified on Heroku.
 
 The catalogue models, Django Admin and AWS S3 product media integration have been implemented and tested successfully in both local development and the deployed Heroku environment.
 
 Product image uploads, image previews and primary image switching were manually verified through Django Admin.
 
-The customer-facing product catalogue, including product search and category filtering, was implemented and tested locally during PLAN07.
+The customer-facing product catalogue, including product search and category filtering, was implemented, tested and deployed during PLAN07.
 
-The catalogue is awaiting deployment and production verification on Heroku.
+The catalogue was manually verified on Heroku on 12 November 2026. Product listings, images, fallback images, stock availability, search, category filtering and combined filtering work as expected.
 
 Individual product detail pages, customer accounts, shopping bag, checkout and payments remain to be developed.
 
@@ -994,7 +994,7 @@ Individual product detail pages, customer accounts, shopping bag, checkout and p
 
 ## Product Catalogue
 
-**Status:** Implemented locally — PLAN07 (12 November 2026).
+**Status:** Completed and deployed — PLAN07 (12 November 2026).
 
 The customer-facing product catalogue is available at `/products/`.
 
@@ -1139,9 +1139,34 @@ Form labels use Bootstrap's `visually-hidden` class to remain accessible to assi
 
 ### Deployment Status
 
-The catalogue has been implemented and tested locally.
+**Status:** Deployed and verified — 12 November 2026.
 
-Production deployment and manual verification on Heroku are pending.
+The product catalogue was merged into `main` and successfully deployed to Heroku.
+
+**Live Catalogue:** https://kitesurf-store-0b61f643c595.herokuapp.com/products/
+
+#### Production Verification
+
+Manual functional testing was performed on the deployed Heroku application.
+
+| Check | Result |
+| --- | --- |
+| Catalogue page loads successfully | PASS |
+| Product names and prices display correctly | PASS |
+| In-stock and out-of-stock labels | PASS |
+| Inactive products are excluded | PASS |
+| Product images load from AWS S3 | PASS |
+| Fallback images display correctly | PASS |
+| Product name search | PASS |
+| Case-insensitive and partial search | PASS |
+| Category filtering | PASS |
+| Combined search and category filtering | PASS |
+| Empty search results | PASS |
+| Search and filter values persist | PASS |
+
+**Result:** The deployed catalogue behaves as expected and matches the locally tested implementation.
+
+PLAN07 is complete.
 
 ---
 
