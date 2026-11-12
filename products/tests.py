@@ -842,3 +842,62 @@ class ProductCatalogueQueryTests(TestCase):
 
         self.assertEqual(products.count(), 0)
         self.assertEqual(response.status_code, 200)
+
+    def test_category_filter_context(self):
+        """Verify categories and selected category are passed to template."""
+        boards = Category.objects.create(
+            name="Boards",
+            slug="boards",
+        )
+
+        response = self.client.get(
+            reverse("product_list"),
+            {"category": "boards"},
+        )
+
+        self.assertIn(boards, response.context["categories"])
+        self.assertEqual(
+            response.context["selected_category"],
+            "boards",
+        )
+
+    def test_selected_category_rendered_in_html(self):
+        """Verify the selected category is preserved in the HTML."""
+        Category.objects.create(
+            name="Boards",
+            slug="boards",
+        )
+
+        response = self.client.get(
+            reverse("product_list"),
+            {"category": "boards"},
+        )
+
+        self.assertContains(
+            response,
+            '<option value="boards" selected>Boards</option>',
+            html=True,
+        )
+
+    def test_no_search_results_message(self):
+        """Verify a helpful message appears when no products match."""
+        response = self.client.get(
+            reverse("product_list"),
+            {"q": "nonexistentproduct123"},
+        )
+
+        self.assertContains(
+            response,
+            "No products match your search or filters.",
+        )
+
+    def test_empty_catalogue_message(self):
+        """Verify a helpful message appears when catalogue is empty."""
+        Product.objects.all().delete()
+
+        response = self.client.get(reverse("product_list"))
+
+        self.assertContains(
+            response,
+            "No products available.",
+        )

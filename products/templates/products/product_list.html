@@ -106,10 +106,14 @@
                     </div>
                 </article>
             </div>
-        {% empty %}
-            <div class="col-12">
-                <p>No products available.</p>
-            </div>
+            {% empty %}
+                <div class="col-12">
+                    {% if query or selected_category %}
+                        <p>No products match your search or filters.</p>
+                    {% else %}
+                        <p>No products available.</p>
+                    {% endif %}
+                </div>
         {% endfor %}
     </div>
 </section>
