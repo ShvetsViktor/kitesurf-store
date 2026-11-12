@@ -769,3 +769,76 @@ class ProductCatalogueQueryTests(TestCase):
         )
 
         self.assertContains(response, 'value="Active Kite"')
+
+    def test_filter_products_by_category(self):
+        """Verify catalogue filters products by category slug."""
+        boards = Category.objects.create(
+            name="Boards",
+            slug="boards",
+        )
+
+        board = Product.objects.create(
+            category=boards,
+            sku="BOARD-001",
+            name="Test Board",
+            description="Test description",
+            price=Decimal("400.00"),
+            stock=3,
+            is_active=True,
+        )
+
+        response = self.client.get(
+            reverse("product_list"),
+            {"category": "boards"},
+        )
+
+        products = response.context["products"]
+
+        self.assertIn(board, products)
+        self.assertNotIn(self.active_product, products)
+        self.assertNotIn(self.out_of_stock_product, products)
+        self.assertNotIn(self.inactive_product, products)
+
+    def test_search_and_filter_products_together(self):
+        """Verify search and category filters work together."""
+        boards = Category.objects.create(
+            name="Boards",
+            slug="boards",
+        )
+
+        matching_product = Product.objects.create(
+            category=boards,
+            sku="BOARD-KITE-001",
+            name="Kite Board",
+            description="Test description",
+            price=Decimal("400.00"),
+            stock=3,
+            is_active=True,
+        )
+
+        response = self.client.get(
+            reverse("product_list"),
+            {
+                "q": "kite",
+                "category": "boards",
+            },
+        )
+
+        products = response.context["products"]
+
+        self.assertIn(matching_product, products)
+        self.assertNotIn(self.active_product, products)
+        self.assertNotIn(self.out_of_stock_product, products)
+        self.assertNotIn(self.inactive_product, products)
+
+    def test_filter_by_nonexistent_category(self):
+        """Verify an unknown category returns no products."""
+        response = self.client.get(
+            reverse("product_list"),
+            {"category": "nonexistent"},
+        )
+
+        products = response.context["products"]
+
+        self.assertEqual(products.count(), 0)
+        self.assertEqual(response.status_code, 200)
