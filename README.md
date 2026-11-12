@@ -26,7 +26,8 @@ KiteSurf Store is being developed as an original Django application for the **Ga
 4. [Five Planes of UX](#five-planes-of-ux)
 5. [Database Design](#database-design)
 6. [Development](#development)
-7. [AI Tools Usage](#ai-tools-usage)
+7. [Product Catalogue](#product-catalogue)
+8. [AI Tools Usage](#ai-tools-usage)
 
 Additional sections will be added as development progresses.
 
@@ -580,7 +581,7 @@ The models implement the following rules:
 - Deleting a product cascades to its related `ProductImage` database records.
 - Products referenced by historical orders will be protected from deletion when the `OrderItem` relationship is implemented.
 
-These rules are implemented through Django model fields, database constraints and model properties. Catalogue filtering and access behaviour will be implemented and tested in subsequent development tasks.
+These rules are implemented through Django model fields, database constraints and model properties. Catalogue filtering and public product visibility were subsequently implemented and tested during PLAN07.
 
 #### Implementation Status
 
@@ -616,7 +617,9 @@ Completed work:
 
 The primary image switching issue was documented and resolved in GitHub Issue #37.
 
-Customer-facing catalogue views, search, filtering and product detail pages will be implemented in the next development stage.
+Customer-facing catalogue views, product search and category filtering were subsequently implemented during PLAN07.
+
+Individual product detail pages remain part of the next development stage.
 
 ## Development
 
@@ -981,7 +984,164 @@ The catalogue models, Django Admin and AWS S3 product media integration have bee
 
 Product image uploads, image previews and primary image switching were manually verified through Django Admin.
 
-Customer-facing catalogue pages, customer accounts, checkout and payments remain to be developed.
+The customer-facing product catalogue, including product search and category filtering, was implemented and tested locally during PLAN07.
+
+The catalogue is awaiting deployment and production verification on Heroku.
+
+Individual product detail pages, customer accounts, shopping bag, checkout and payments remain to be developed.
+
+---
+
+## Product Catalogue
+
+**Status:** Implemented locally — PLAN07 (12 November 2026).
+
+The customer-facing product catalogue is available at `/products/`.
+
+The catalogue allows visitors to browse kitesurfing equipment, search products by name, filter products by category and check product availability.
+
+### Implementation
+
+The catalogue uses the existing `Category`, `Product` and `ProductImage` Django models.
+
+The product list view is implemented in `products/views.py`.
+
+The interface is implemented in `products/templates/products/product_list.html` and extends the shared `base.html` template.
+
+### Product Visibility
+
+The catalogue displays active products only.
+
+- Active products with stock are displayed as `In stock`.
+- Active products without stock remain visible as `Out of stock`.
+- Inactive products are excluded from the public catalogue.
+
+Product availability is determined using the existing `Product.is_available` property.
+
+### Search and Category Filtering
+
+Visitors can search for products by name using a GET request.
+
+The search uses Django ORM's `icontains` lookup to perform case-insensitive matching.
+
+Category filtering uses the category slug.
+
+Both filters can be applied simultaneously.
+
+The catalogue uses the following query parameters:
+
+| Parameter | Purpose | Example |
+| --- | --- | --- |
+| `q` | Search by product name | `?q=kite` |
+| `category` | Filter by category slug | `?category=boards` |
+| `q` and `category` | Combine search and filtering | `?q=surf&category=boards` |
+
+Search input is stripped of leading and trailing whitespace.
+
+The selected category and search query remain populated after form submission.
+
+Invalid category slugs return an empty product list rather than causing a server error.
+
+### Product Cards
+
+Each product card displays:
+
+- Primary product image.
+- Product name.
+- Price in GBP.
+- Stock availability badge.
+
+If a product has no primary image, the catalogue displays the fallback image:
+
+`static/images/default-image-fallback.webp`
+
+Product images are retrieved through the configured Django storage backend, using Amazon S3 when AWS storage is enabled.
+
+The interface uses Bootstrap's responsive grid and card components.
+
+### Empty States
+
+The catalogue displays appropriate feedback when no products are available.
+
+- `No products available.` — the catalogue contains no active products.
+- `No products match your search or filters.` — search or filtering produces no matching products.
+
+### Automated Testing
+
+Automated tests use Django's built-in testing framework and SQLite in-memory.
+
+The catalogue tests cover:
+
+- Catalogue URL and HTTP response.
+- Template rendering.
+- Active and inactive product visibility.
+- Out-of-stock product visibility.
+- Case-insensitive product search.
+- Category filtering.
+- Combined search and category filtering.
+- Invalid category handling.
+- Empty catalogue and no-results states.
+- Product names and prices.
+- Stock availability labels.
+
+#### Test Results — 12 November 2026
+
+| Check | Result |
+| --- | --- |
+| Complete Django test suite | PASS — 63 tests |
+| Django system checks | PASS — 0 issues |
+| SQLite in-memory test database | PASS |
+
+The complete test suite was executed using:
+
+`python manage.py test`
+
+### Manual Functional Testing
+
+Manual testing was performed locally in the browser.
+
+| Test | Result |
+| --- | --- |
+| Product names and prices | PASS |
+| In-stock and out-of-stock labels | PASS |
+| Inactive product exclusion | PASS |
+| Product images and fallback image | PASS |
+| Full product name search | PASS |
+| Partial and case-insensitive search | PASS |
+| Category filtering | PASS |
+| Combined search and filtering | PASS |
+| Empty search results | PASS |
+| Resetting search and filters | PASS |
+| Search whitespace handling | PASS |
+| Search and category selection persistence | PASS |
+
+### Accessibility Review
+
+The catalogue template was reviewed for semantic HTML and accessible form controls.
+
+| Check | Result |
+| --- | --- |
+| Search input has an associated label | PASS |
+| Category filter has an associated label | PASS |
+| Product images have alternative text | PASS |
+| Semantic HTML structure | PASS — code inspection |
+
+The search form uses `role="search"`.
+
+Form labels use Bootstrap's `visually-hidden` class to remain accessible to assistive technologies.
+
+### Known Limitations
+
+- Individual product detail pages are not yet implemented.
+- Product cards do not yet provide navigation to individual product pages.
+- Shopping bag and checkout functionality are not yet implemented.
+- Price sorting and related products remain optional features.
+
+### Deployment Status
+
+The catalogue has been implemented and tested locally.
+
+Production deployment and manual verification on Heroku are pending.
 
 ---
 
