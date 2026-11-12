@@ -760,3 +760,12 @@ class ProductCatalogueQueryTests(TestCase):
         self.assertContains(response, 'name="q"')
         self.assertContains(response, 'type="search"')
         self.assertContains(response, 'type="submit"')
+
+    def test_search_query_remains_in_input(self):
+        """Verify the search input retains the submitted query."""
+        response = self.client.get(
+            reverse("product_list"),
+            {"q": "Active Kite"},
+        )
+
+        self.assertContains(response, 'value="Active Kite"')

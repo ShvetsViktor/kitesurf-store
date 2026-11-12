@@ -17,5 +17,8 @@ def product_list(request):
     return render(
         request,
         "products/product_list.html",
-        {"products": products},
+        {
+            "products": products,
+            "query": query,
+        },
     )
