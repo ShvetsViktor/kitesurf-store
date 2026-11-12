@@ -697,3 +697,66 @@ class ProductCatalogueQueryTests(TestCase):
             response,
             "products/test-kite.webp",
         )
+
+    def test_search_products_by_name(self):
+        """Verify catalogue search filters products by name."""
+        response = self.client.get(
+            reverse("product_list"),
+            {"q": "Active Kite"},
+        )
+
+        products = response.context["products"]
+
+        self.assertIn(self.active_product, products)
+        self.assertNotIn(self.out_of_stock_product, products)
+        self.assertNotIn(self.inactive_product, products)
+
+    def test_search_is_case_insensitive(self):
+        """Verify product search is case-insensitive."""
+        response = self.client.get(
+            reverse("product_list"),
+            {"q": "active kite"},
+        )
+
+        self.assertIn(
+            self.active_product,
+            response.context["products"],
+        )
+
+    def test_search_ignores_surrounding_whitespace(self):
+        """Verify surrounding whitespace is removed from search queries."""
+        response = self.client.get(
+            reverse("product_list"),
+            {"q": "  Active Kite  "},
+        )
+
+        self.assertIn(
+            self.active_product,
+            response.context["products"],
+        )
+
+        self.assertNotIn(
+            self.out_of_stock_product,
+            response.context["products"],
+        )
+
+    def test_empty_search_returns_all_active_products(self):
+        """Verify an empty search displays all active products."""
+        response = self.client.get(
+            reverse("product_list"),
+            {"q": "   "},
+        )
+
+        products = response.context["products"]
+
+        self.assertIn(self.active_product, products)
+        self.assertIn(self.out_of_stock_product, products)
+        self.assertNotIn(self.inactive_product, products)
+
+    def test_catalogue_displays_search_form(self):
+        """Verify the catalogue provides a product search form."""
+        response = self.client.get(reverse("product_list"))
+
+        self.assertContains(response, 'name="q"')
+        self.assertContains(response, 'type="search"')
+        self.assertContains(response, 'type="submit"')
