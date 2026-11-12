@@ -901,3 +901,25 @@ class ProductCatalogueQueryTests(TestCase):
             response,
             "No products available.",
         )
+
+    def test_product_card_displays_name_and_price(self):
+        """Verify product cards display the product name and price."""
+        response = self.client.get(reverse("product_list"))
+
+        self.assertContains(
+            response,
+            self.active_product.name,
+        )
+
+        self.assertContains(
+            response,
+            f"{self.active_product.price:.2f}",
+        )
+
+    def test_product_availability_displayed(self):
+        """Verify in-stock and out-of-stock labels are displayed."""
+        response = self.client.get(reverse("product_list"))
+
+        self.assertContains(response, "In stock")
+        self.assertContains(response, "Out of stock")
+        self.assertContains(response, self.out_of_stock_product.name)
