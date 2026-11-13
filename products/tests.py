@@ -923,3 +923,31 @@ class ProductCatalogueQueryTests(TestCase):
         self.assertContains(response, "In stock")
         self.assertContains(response, "Out of stock")
         self.assertContains(response, self.out_of_stock_product.name)
+
+
+class ProductDetailViewTests(TestCase):
+    """Test the customer-facing product detail page."""
+    def setUp(self):
+        self.category = Category.objects.create(
+            name="Kites",
+            slug="kites",
+        )
+
+        self.active_product = Product.objects.create(
+            category=self.category,
+            sku="KITE-001",
+            name="Active Kite",
+            description="Test description",
+            price=Decimal("500.00"),
+            stock=5,
+            is_active=True,
+        )
+
+    def test_active_product_detail_returns_200(self):
+        """Verify an active product detail page returns HTTP 200."""
+        response = self.client.get(reverse(
+            "product_detail",
+            args=[self.active_product.pk])
+            )
+
+        self.assertEqual(response.status_code, 200)

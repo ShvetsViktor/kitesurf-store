@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 from .models import Category, Product
 
@@ -29,4 +29,18 @@ def product_list(request):
             "query": query,
             "selected_category": category,
         },
+    )
+
+
+def product_detail(request, pk):
+    """Display requested product."""
+    product = get_object_or_404(
+        Product.objects.filter(is_active=True),
+        pk=pk
+    )
+
+    return render(
+        request,
+        "products/product_detail.html",
+        {"product": product},
     )
