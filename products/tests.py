@@ -5,9 +5,10 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
-from django.urls import reverse
+from django.urls import reverse, resolve
 
 from .models import Category, Product, ProductImage
+from .views import product_detail
 
 
 class CategoryModelTests(TestCase):
@@ -945,9 +946,20 @@ class ProductDetailViewTests(TestCase):
 
     def test_active_product_detail_returns_200(self):
         """Verify an active product detail page returns HTTP 200."""
-        response = self.client.get(reverse(
-            "product_detail",
-            args=[self.active_product.pk])
-            )
+        response = self.client.get(
+            reverse("product_detail", args=[self.active_product.pk])
+        )
 
         self.assertEqual(response.status_code, 200)
+
+    def test_product_detail_url_resolves(self):
+        """Verify the product detail URL resolves to the correct view."""
+
+        url = reverse("product_detail", args=[self.active_product.pk])
+        resolved = resolve(url)
+
+        self.assertEqual(url, f"/products/{self.active_product.pk}/")
+        self.assertEqual(resolved.func, product_detail)
+
+    def test_product_detail_uses_correct_template(self):
+        """Verify the product detail page uses the correct template."""
