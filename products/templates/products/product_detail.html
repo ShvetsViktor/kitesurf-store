@@ -2,22 +2,44 @@
 {% load static %}
 
 {% block content %}
-    {% if product.primary_image %}
-        <img src="{{ product.primary_image.image.url }}" alt="{{ product.name }}">
-        {% for image in product.images.all %}
-            {% if not image.is_primary %}
-                <img src="{{ image.image.url }}" alt="{{ product.name }}">
-            {% endif %}
-        {% endfor %}
-    {% else %}
-        <img src="{% static 'images/default-image-fallback.webp' %}" alt="{{ product.name }}">
-    {% endif %}
+    <div class="product-gallery">
+        {% if product.primary_image %}
+            <div class="product-gallery-main">
+                <img
+                    src="{{ product.primary_image.image.url }}"
+                    class="img-fluid rounded"
+                    alt="{{ product.name }}"
+                >
+            </div>
+            <div class="product-gallery-thumbnails d-flex flex-wrap gap-2 mt-3">
+                {% for image in product.images.all %}
+                    {% if not image.is_primary %}
+                        <img
+                            src="{{ image.image.url }}"
+                            class="img-fluid rounded"
+                            alt="{{ product.name }}"
+                        >
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="product-gallery-main">
+                <img
+                    src="{% static 'images/default-image-fallback.webp' %}"
+                    class="img-fluid rounded"
+                    alt="{{ product.name }}"
+                >
+            </div>
+        {% endif %}
+    </div>
     <h1>{{ product.name }}</h1>
     <div>{{ product.description }}</div>
+    <p>Category: {{ product.category.name }}</p>
     <p>{{ product.price }}</p>
     {% if product.is_available %}
         <p>In stock</p>
     {% else %}
         <p>Out of stock</p>
     {% endif %}
+    <a href="{% url "product_list" %}">Back to Products</a>
 {% endblock %}

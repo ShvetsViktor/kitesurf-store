@@ -1112,3 +1112,19 @@ class ProductDetailViewTests(TestCase):
 
         self.assertContains(response, "products/primary-image.webp")
         self.assertContains(response, "products/secondary-image.webp")
+
+    def test_product_detail_displays_category(self):
+        """Verify the product detail page displays the product category."""
+        response = self.client.get(reverse(
+                    "product_detail", args=[self.active_product.pk]
+                    ))
+        self.assertContains(response, self.active_product.category.name)
+
+    def test_product_detail_has_back_to_products_link(self):
+        """Verify the product detail page links back to the catalogue."""
+        response = self.client.get(reverse(
+                    "product_detail", args=[self.active_product.pk]
+                    ))
+        url = reverse("product_list")
+
+        self.assertContains(response, f'<a href="{url}">')

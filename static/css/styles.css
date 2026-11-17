@@ -125,6 +125,21 @@ p {
     --bs-btn-disabled-border-color: var(--color-primary);
 }
 
+/* Product detail gallery */
+
+.product-gallery-main img {
+    width: 100%;
+    max-height: 450px;
+    object-fit: contain;
+}
+
+.product-gallery-thumbnails img {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    border: 1px solid #e2e8f0;
+}
+
 /* Footer */
 
 .site-footer {
