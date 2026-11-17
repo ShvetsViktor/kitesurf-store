@@ -928,6 +928,7 @@ class ProductCatalogueQueryTests(TestCase):
 
 class ProductDetailViewTests(TestCase):
     """Test the customer-facing product detail page."""
+
     def setUp(self):
         self.category = Category.objects.create(
             name="Kites",
@@ -1041,4 +1042,21 @@ class ProductDetailViewTests(TestCase):
         self.assertContains(
             response,
             f"{self.active_product.price:.2f}"
+            )
+
+    def test_product_detail_displays_availability(self):
+        """Verify product detail pages display
+        the correct availability status."""
+        response = self.client.get(reverse(
+            "product_detail", args=[self.active_product.pk]
+            ))
+        response_out_of_stock = self.client.get(reverse(
+            "product_detail", args=[self.out_of_stock_product.pk]
+            ))
+
+        self.assertContains(
+            response, "In stock"
+            )
+        self.assertContains(
+            response_out_of_stock, "Out of stock"
             )

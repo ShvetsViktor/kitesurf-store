@@ -4,4 +4,9 @@
     <h1>{{ product.name }}</h1>
     <div>{{ product.description }}</div>
     <p>{{ product.price }}</p>
+    {% if product.is_available %}
+        <p>In stock</p>
+    {% else %}
+        <p>Out of stock</p>
+    {% endif %}
 {% endblock %}
