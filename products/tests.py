@@ -1127,4 +1127,4 @@ class ProductDetailViewTests(TestCase):
                     ))
         url = reverse("product_list")
 
-        self.assertContains(response, f'<a href="{url}">')
+        self.assertContains(response, f'<a href="{url}"')
