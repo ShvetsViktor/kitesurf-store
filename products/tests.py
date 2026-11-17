@@ -925,6 +925,13 @@ class ProductCatalogueQueryTests(TestCase):
         self.assertContains(response, "Out of stock")
         self.assertContains(response, self.out_of_stock_product.name)
 
+    def test_product_card_links_to_detail_page(self):
+        """Verify the entire catalogue product card links to its PDP."""
+        response = self.client.get(reverse("product_list"))
+        url = reverse("product_detail", args=[self.active_product.pk])
+
+        self.assertContains(response, f'<a href="{url}"')
+
 
 class ProductDetailViewTests(TestCase):
     """Test the customer-facing product detail page."""
@@ -1027,7 +1034,8 @@ class ProductDetailViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_product_detail_displays_name_description_and_price(self):
-        """Verify the product detail page displays name, description and price."""
+        """Verify the product detail page displays name,
+        description and price."""
         response = self.client.get(reverse(
             "product_detail", args=[self.active_product.pk]
             ))

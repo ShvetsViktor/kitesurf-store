@@ -65,46 +65,48 @@
     <div class="row g-4">
         {% for product in products %}
             <div class="col-12 col-sm-6 col-lg-4">
-                <article class="card h-100">
-                    {% if product.primary_image %}
-                        <img
-                            src="{{ product.primary_image.image.url }}"
-                            alt="{{ product.name }}"
-                            class="card-img-top img-fluid"
-                            width="600"
-                            height="600"
-                            loading="lazy"
-                        >
-                    {% else %}
-                        <img
-                            src="{% static 'images/default-image-fallback.webp' %}"
-                            alt="Product image unavailable"
-                            class="card-img-top img-fluid"
-                            width="600"
-                            height="600"
-                            loading="lazy"
-                        >
-                    {% endif %}
-                    <div class="card-body">
-                        <h2 class="card-title h5">
-                            {{ product.name }}
-                        </h2>
-
-                        <p class="card-text">
-                            £{{ product.price }}
-                        </p>
-
-                        {% if product.is_available %}
-                            <span class="badge text-bg-success">
-                                In stock
-                            </span>
+                <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none text-reset">
+                    <article class="card h-100">
+                        {% if product.primary_image %}
+                            <img
+                                src="{{ product.primary_image.image.url }}"
+                                alt="{{ product.name }}"
+                                class="card-img-top img-fluid"
+                                width="600"
+                                height="600"
+                                loading="lazy"
+                            >
                         {% else %}
-                            <span class="badge text-bg-secondary">
-                                Out of stock
-                            </span>
+                            <img
+                                src="{% static 'images/default-image-fallback.webp' %}"
+                                alt="Product image unavailable"
+                                class="card-img-top img-fluid"
+                                width="600"
+                                height="600"
+                                loading="lazy"
+                            >
                         {% endif %}
-                    </div>
-                </article>
+                        <div class="card-body">
+                            <h2 class="card-title h5">
+                                {{ product.name }}
+                            </h2>
+
+                            <p class="card-text">
+                                £{{ product.price }}
+                            </p>
+
+                            {% if product.is_available %}
+                                <span class="badge text-bg-success">
+                                    In stock
+                                </span>
+                            {% else %}
+                                <span class="badge text-bg-secondary">
+                                    Out of stock
+                                </span>
+                            {% endif %}
+                        </div>
+                    </article>
+                </a>
             </div>
             {% empty %}
                 <div class="col-12">
