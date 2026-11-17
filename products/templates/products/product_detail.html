@@ -19,7 +19,7 @@
                         </div>
                         <div class="product-gallery-thumbnails d-flex flex-wrap gap-2 mt-3">
                             {% for image in product.images.all %}
-                                {% if not image.is_primary %}
+                                {% if image.pk != product.primary_image.pk %}
                                     <img
                                         src="{{ image.image.url }}"
                                         class="img-fluid rounded"

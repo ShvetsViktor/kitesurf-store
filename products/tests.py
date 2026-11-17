@@ -551,7 +551,7 @@ class ProductAdminTests(TestCase):
             ProductImage.objects.filter(pk=secondary_image.pk).exists()
         )
 
-        self.assertIsNone(self.product.primary_image)
+        self.assertEqual(self.product.primary_image, secondary_image)
 
     def test_product_admin_displays_image_preview(self):
         """Verify the product admin displays an image thumbnail."""
@@ -1128,3 +1128,54 @@ class ProductDetailViewTests(TestCase):
         url = reverse("product_list")
 
         self.assertContains(response, f'<a href="{url}"')
+
+    def test_product_detail_uses_first_image_when_no_primary_exists(self):
+        """Verify PDP displays an image even when none is marked primary."""
+        image = ProductImage.objects.create(
+            product=self.active_product,
+            image="products/secondary-image.webp",
+            is_primary=False
+        )
+        url = reverse("product_detail", args=[self.active_product.pk])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, image.image.url)
+        self.assertNotContains(response, "default-image-fallback.webp")
+
+    def test_product_detail_displays_multiple_images_when_no_primary_exists(self):
+        """Verify PDP displays all images when none is marked primary."""
+        first_image = ProductImage.objects.create(
+            product=self.active_product,
+            image="products/primary-image.webp",
+            is_primary=False
+        )
+        second_image = ProductImage.objects.create(
+            product=self.active_product,
+            image="products/secondary-image.webp",
+            is_primary=False
+        )
+        url = reverse("product_detail", args=[self.active_product.pk])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, first_image.image.url)
+        self.assertContains(response, second_image.image.url)
+        self.assertNotContains(response, "default-image-fallback.webp")
+
+    def test_product_detail_does_not_duplicate_fallback_image(self):
+        first_image = ProductImage.objects.create(
+            product=self.active_product,
+            image="products/primary-image.webp",
+            is_primary=False
+        )
+        second_image = ProductImage.objects.create(
+            product=self.active_product,
+            image="products/secondary-image.webp",
+            is_primary=False
+        )
+        url = reverse("product_detail", args=[self.active_product.pk])
+        response = self.client.get(url)
+
+        self.assertContains(response, first_image.image.url, count=1)
+        self.assertContains(response, second_image.image.url, count=1)
