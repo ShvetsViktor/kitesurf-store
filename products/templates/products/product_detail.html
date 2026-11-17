@@ -1,6 +1,12 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
+    {% if product.primary_image %}
+        <img src="{{ product.primary_image.image.url }}" alt="{{ product.name }}">
+    {% else %}
+        <img src="{% static 'images/default-image-fallback.webp' %}" alt="{{ product.name }}">
+    {% endif %}
     <h1>{{ product.name }}</h1>
     <div>{{ product.description }}</div>
     <p>{{ product.price }}</p>

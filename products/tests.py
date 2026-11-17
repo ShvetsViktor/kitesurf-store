@@ -1060,3 +1060,28 @@ class ProductDetailViewTests(TestCase):
         self.assertContains(
             response_out_of_stock, "Out of stock"
             )
+
+    def test_product_detail_displays_primary_image(self):
+        """Verify the PDP displays the product's primary image."""
+        ProductImage.objects.create(
+            product=self.active_product,
+            image="products/test-kite.webp",
+            is_primary=True
+        )
+        response = self.client.get(reverse(
+            "product_detail", args=[self.active_product.pk]
+            ))
+
+        self.assertContains(
+            response, "products/test-kite.webp"
+            )
+
+    def test_product_detail_displays_fallback_image(self):
+        """Verify the PDP displays a fallback when no image exists."""
+        response = self.client.get(reverse(
+            "product_detail", args=[self.active_product.pk]
+            ))
+
+        self.assertContains(
+            response, "default-image-fallback.webp"
+            )
