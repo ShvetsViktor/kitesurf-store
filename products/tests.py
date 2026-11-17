@@ -944,6 +944,26 @@ class ProductDetailViewTests(TestCase):
             is_active=True,
         )
 
+        self.inactive_product = Product.objects.create(
+            category=self.category,
+            sku="KITE-002",
+            name="Inactive Kite",
+            description="Test description",
+            price=Decimal("600.00"),
+            stock=5,
+            is_active=False,
+        )
+
+        self.out_of_stock_product = Product.objects.create(
+            category=self.category,
+            sku="KITE-003",
+            name="Out of Stock Kite",
+            description="Test description",
+            price=Decimal("700.00"),
+            stock=0,
+            is_active=True,
+        )
+
     def test_active_product_detail_returns_200(self):
         """Verify an active product detail page returns HTTP 200."""
         response = self.client.get(
@@ -963,3 +983,62 @@ class ProductDetailViewTests(TestCase):
 
     def test_product_detail_uses_correct_template(self):
         """Verify the product detail page uses the correct template."""
+        response = self.client.get(reverse(
+            "product_detail", args=[self.active_product.pk]
+            ))
+
+        self.assertTemplateUsed(response, "products/product_detail.html")
+
+    def test_product_detail_context_contains_requested_product(self):
+        """Verify the requested product is passed to the template context."""
+        response = self.client.get(reverse(
+                    "product_detail", args=[self.active_product.pk]
+                    ))
+
+        self.assertEqual(
+            self.active_product,
+            response.context["product"]
+            )
+
+    def test_nonexistent_product_detail_returns_404(self):
+        """Verify a nonexistent product detail page returns HTTP 404."""
+        response = self.client.get(reverse(
+            "product_detail", args=[99999]
+            ))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_inactive_product_detail_returns_404(self):
+        """Verify an inactive product detail page returns HTTP 404."""
+        response = self.client.get(reverse(
+            "product_detail", args=[self.inactive_product.pk]
+            ))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_out_of_stock_product_detail_returns_200(self):
+        """Verify an active out-of-stock product
+        detail page remains accessible."""
+        response = self.client.get(reverse(
+            "product_detail", args=[self.out_of_stock_product.pk]
+            ))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_product_detail_displays_name_description_and_price(self):
+        """Verify the product detail page displays name, description and price."""
+        response = self.client.get(reverse(
+            "product_detail", args=[self.active_product.pk]
+            ))
+
+        self.assertContains(
+            response, self.active_product.name
+            )
+        self.assertContains(
+            response,
+            self.active_product.description
+            )
+        self.assertContains(
+            response,
+            f"{self.active_product.price:.2f}"
+            )
