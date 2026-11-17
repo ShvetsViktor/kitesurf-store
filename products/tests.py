@@ -1085,3 +1085,22 @@ class ProductDetailViewTests(TestCase):
         self.assertContains(
             response, "default-image-fallback.webp"
             )
+
+    def test_product_detail_displays_additional_images(self):
+        """Verify the PDP displays additional product images."""
+        ProductImage.objects.create(
+            product=self.active_product,
+            image="products/primary-image.webp",
+            is_primary=True
+        )
+        ProductImage.objects.create(
+            product=self.active_product,
+            image="products/secondary-image.webp",
+            is_primary=False
+        )
+        response = self.client.get(reverse(
+                    "product_detail", args=[self.active_product.pk]
+                    ))
+
+        self.assertContains(response, "products/primary-image.webp")
+        self.assertContains(response, "products/secondary-image.webp")

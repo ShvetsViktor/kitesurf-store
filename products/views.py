@@ -35,7 +35,7 @@ def product_list(request):
 def product_detail(request, pk):
     """Display requested product."""
     product = get_object_or_404(
-        Product.objects.filter(is_active=True),
+        Product.objects.filter(is_active=True).prefetch_related("images"),
         pk=pk
     )
 
