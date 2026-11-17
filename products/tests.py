@@ -1143,7 +1143,7 @@ class ProductDetailViewTests(TestCase):
         self.assertContains(response, image.image.url)
         self.assertNotContains(response, "default-image-fallback.webp")
 
-    def test_product_detail_displays_multiple_images_when_no_primary_exists(self):
+    def test_pdp_multiple_images_without_primary(self):
         """Verify PDP displays all images when none is marked primary."""
         first_image = ProductImage.objects.create(
             product=self.active_product,
