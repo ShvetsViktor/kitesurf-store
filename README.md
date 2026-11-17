@@ -27,7 +27,8 @@ KiteSurf Store is being developed as an original Django application for the **Ga
 5. [Database Design](#database-design)
 6. [Development](#development)
 7. [Product Catalogue](#product-catalogue)
-8. [AI Tools Usage](#ai-tools-usage)
+8. [Product Detail Page](#product-detail-page)
+9. [AI Tools Usage](#ai-tools-usage)
 
 Additional sections will be added as development progresses.
 
@@ -543,11 +544,11 @@ The `Product` model stores equipment information, pricing, stock availability an
 
 Each equipment size is represented by a separate product record with its own SKU, price and stock quantity.
 
-Product detail pages will use database IDs rather than product slugs.
+Product detail pages use database IDs rather than product slugs.
 
 The model includes:
 
-- `primary_image` — returns the primary product image, if available.
+- `primary_image` — returns the designated primary image, falls back to the first available image if no primary is designated, or returns `None` if the product has no images.
 - `is_available` — returns `True` when the product is active and has stock.
 - `CheckConstraint` — requires product prices to be greater than zero.
 
@@ -619,7 +620,7 @@ The primary image switching issue was documented and resolved in GitHub Issue #3
 
 Customer-facing catalogue views, product search and category filtering were subsequently implemented during PLAN07.
 
-Individual product detail pages remain part of the next development stage.
+Individual product detail pages were subsequently implemented and verified during PLAN08 (17 November 2026).
 
 ## Development
 
@@ -723,7 +724,9 @@ Primary and outline-primary button styles have been implemented but have not yet
 | Python 3.12.11 | Backend programming language |
 | Django 5.2.19 | Web application framework |
 | PostgreSQL (Neon) | Shared development and deployed application database |
-| SQLite in-memory | Fast automated testing |
+| SQLite in-memory | Fast, isolated automated testing |
+| pytest | Automated test runner and concise test reporting |
+| pytest-django | Django integration for pytest |
 | Django Templates | Server-rendered HTML |
 | Bootstrap 5 | Responsive user interface |
 | JavaScript | Client-side functionality |
@@ -810,7 +813,7 @@ Initial Django migrations have been applied successfully to the development Post
 
 KiteSurf Store follows a test-driven development (TDD) approach where practical.
 
-Automated tests are implemented using Django's built-in testing framework.
+Automated tests are written using Django's built-in testing framework and can be executed using either Django's test runner or `pytest` with `pytest-django`. The `pytest` and `pytest-django` dependencies are included in `requirements.txt`.
 
 #### Test Database
 
@@ -820,7 +823,39 @@ This configuration provides fast, isolated test execution without modifying the 
 
 Database migrations are applied automatically when the test database is created.
 
+The test database selection is configured in `config/settings.py`. Both `python manage.py test` and `pytest` use SQLite in-memory by default, while normal local development continues to use Neon PostgreSQL. The `TEST_DATABASE=postgres` environment variable can be used to select the configured PostgreSQL database for tests; use only an appropriately isolated test database and never run tests against data that must be preserved.
+
+#### pytest Configuration
+
+The project includes a root-level `pytest.ini` file:
+
+```ini
+[pytest]
+DJANGO_SETTINGS_MODULE = config.settings
+python_files = tests.py test_*.py *_tests.py
+addopts = --color=yes
+```
+
+- `DJANGO_SETTINGS_MODULE` selects the Django project settings.
+- `python_files` defines the test module filename patterns for discovery.
+- `addopts` enables coloured terminal output.
+- `pytest-django` initialises Django and integrates Django's test classes with pytest.
+
+Install all project dependencies, including `pytest` and `pytest-django`, using `pip install -r requirements.txt`.
+
 #### Running Tests
+
+Run the complete test suite using pytest (recommended for concise output):
+
+```bash
+pytest -q
+```
+
+Run a specific test class or method:
+
+```bash
+pytest products/tests.py -q
+```
 
 Run the complete Django test suite:
 
@@ -888,6 +923,17 @@ The issues were resolved by:
 The bug was documented in GitHub Issue #37 and closed after successful regression testing.
 
 Additional automated tests will be added as customer-facing functionality is implemented.
+
+#### PLAN08 Test Results — 17 November 2026
+
+| Check | Result |
+| --- | --- |
+| Complete pytest suite | PASS — 81 tests, 2 subtests |
+| Django system checks | PASS — 0 issues |
+| SQLite in-memory test database | PASS |
+| PDP functionality and image fallback regression tests | PASS |
+
+The tests cover product detail rendering, active-product visibility, HTTP 404 handling, product information, image gallery behaviour and image fallback when no primary image is designated. The final local test run completed in approximately 1.4 seconds.
 
 ### Environment Variables and Security
 
@@ -988,7 +1034,17 @@ The customer-facing product catalogue, including product search and category fil
 
 The catalogue was manually verified on Heroku on 12 November 2026. Product listings, images, fallback images, stock availability, search, category filtering and combined filtering work as expected.
 
-Individual product detail pages, customer accounts, shopping bag, checkout and payments remain to be developed.
+Individual product detail pages were implemented and deployed during PLAN08. Customer accounts, shopping bag, checkout and payments remain to be developed.
+
+#### Product Detail Page Deployment — 17 November 2026
+
+- Feature branch `feature/product-detail` merged into `main` through a Pull Request.
+- Heroku release **v21** deployed successfully from commit `bbfe6957`.
+- Build succeeded and Gunicorn workers started successfully.
+- Production manual functional checks passed, including product detail pages, image gallery and fallback handling, stock information, navigation and expected HTTP 404 responses.
+- Product images were visually verified to load from AWS S3.
+- Reviewed Heroku logs showed successful HTTP 200 responses for the catalogue and PDP and expected HTTP 404 responses for invalid or unavailable product URLs; no HTTP 500 responses were observed in the supplied log excerpt.
+- Requests for `/favicon.ico` returned HTTP 404; favicon setup remains a separate minor improvement and does not affect PDP functionality.
 
 ---
 
@@ -1051,7 +1107,7 @@ Each product card displays:
 - Price in GBP.
 - Stock availability badge.
 
-If a product has no primary image, the catalogue displays the fallback image:
+If a product has no images, the catalogue displays the fallback image:
 
 `static/images/default-image-fallback.webp`
 
@@ -1132,8 +1188,8 @@ Form labels use Bootstrap's `visually-hidden` class to remain accessible to assi
 
 ### Known Limitations
 
-- Individual product detail pages are not yet implemented.
-- Product cards do not yet provide navigation to individual product pages.
+- Product detail pages are now implemented (PLAN08).
+- Product cards now link to their corresponding product detail pages.
 - Shopping bag and checkout functionality are not yet implemented.
 - Price sorting and related products remain optional features.
 
@@ -1167,6 +1223,65 @@ Manual functional testing was performed on the deployed Heroku application.
 **Result:** The deployed catalogue behaves as expected and matches the locally tested implementation.
 
 PLAN07 is complete.
+
+---
+
+## Product Detail Page
+
+**Status:** Completed and deployed — PLAN08 / GitHub Issue #41 (17 November 2026).
+
+Individual product pages are available at `/products/<int:pk>/`. Visitors can open a product detail page from the catalogue and return using the **Back to Products** link.
+
+### Implementation
+
+- `products/urls.py` defines the `product_detail` route using a product's database ID.
+- `products/views.py` implements `product_detail(request, pk)` using `get_object_or_404` and prefetches related product images.
+- `products/templates/products/product_detail.html` extends the shared base template and displays product details and an image gallery.
+- Only active products are accessible through the public PDP; inactive and nonexistent products return HTTP 404.
+
+### Product Information and Availability
+
+The page displays the product's category, name, description, price in GBP and stock availability. Active products with zero stock display **Out of Stock**; products with available stock display **In Stock**.
+
+### Product Image Gallery and Fallback
+
+- A designated primary image is displayed as the main product image.
+- Additional images are displayed as thumbnails without duplicating the main image.
+- If images exist but none is designated primary, the first available image is used as the main image.
+- If the product has no images, the default placeholder image is displayed.
+- Product media URLs use the configured storage backend; AWS S3 image delivery was manually verified in production.
+
+The `Product.primary_image` property implements the image selection fallback. The image gallery excludes the selected main image from the thumbnail list by comparing image IDs rather than relying only on `is_primary`.
+
+### Automated Testing
+
+The PDP and image fallback behaviour were developed and verified using TDD and regression tests. Coverage includes:
+
+- Successful rendering of active products.
+- HTTP 404 responses for nonexistent and inactive products.
+- Product information and stock availability.
+- Main image and additional image rendering.
+- Fallback to the first image when no primary is designated.
+- Placeholder rendering when no images exist.
+- Prevention of duplicated main images in the thumbnail gallery.
+
+**Final local verification (17 November 2026):** `pytest -q` — **81 passed, 2 subtests passed**; `python manage.py check` — **0 issues**.
+
+### Manual and Production Verification
+
+All ten planned local PDP manual scenarios passed. After the feature branch was merged into `main`, the deployed Heroku application was manually tested again, including navigation, product details, availability, image loading, fallback behaviour and expected 404 responses.
+
+| Check | Result |
+| --- | --- |
+| Production deployment — Heroku release v21 (`bbfe6957`) | PASS |
+| PDP routes and catalogue navigation | PASS |
+| Product information and availability | PASS |
+| Main image, thumbnails and image fallback | PASS |
+| AWS S3 product image delivery | PASS |
+| Inactive and nonexistent product handling | PASS |
+| Heroku logs — no HTTP 500 errors observed | PASS |
+
+**Result:** PLAN08 / Issue #41 completed, merged, deployed and verified on 17 November 2026.
 
 ---
 
