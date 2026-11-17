@@ -5,10 +5,16 @@ dj-database-url==3.1.2
 Django==5.2.19
 django-storages==1.14.6
 gunicorn==26.2.0
+iniconfig==2.3.1
 jmespath==1.1.0
+packaging==26.3
 pillow==13.0.0
+pluggy==1.7.0
 psycopg==3.3.8
 psycopg-binary==3.3.8
+Pygments==2.21.0
+pytest==9.2.0
+pytest-django==4.14.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.4
 s3transfer==0.19.3
