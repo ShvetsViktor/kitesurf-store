@@ -40,10 +40,14 @@ class Product(models.Model):
 
     @property
     def primary_image(self):
-        return next(
-            (image for image in self.images.all() if image.is_primary),
-            None,
-        )
+        """Return the primary image or the first available image."""
+        images = list(self.images.all())
+
+        for image in images:
+            if image.is_primary:
+                return image
+
+        return images[0] if images else None
 
     @property
     def is_available(self):

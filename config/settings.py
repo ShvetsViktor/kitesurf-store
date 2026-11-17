@@ -89,7 +89,10 @@ DATABASES = {
     )
 }
 
-if 'test' in sys.argv and os.environ.get('TEST_DATABASE') != 'postgres':
+if (
+    ('test' in sys.argv or 'pytest' in Path(sys.argv[0]).name)
+    and os.environ.get('TEST_DATABASE') != 'postgres'
+):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

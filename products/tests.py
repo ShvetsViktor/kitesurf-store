@@ -5,9 +5,10 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
-from django.urls import reverse
+from django.urls import reverse, resolve
 
 from .models import Category, Product, ProductImage
+from .views import product_detail
 
 
 class CategoryModelTests(TestCase):
@@ -550,7 +551,7 @@ class ProductAdminTests(TestCase):
             ProductImage.objects.filter(pk=secondary_image.pk).exists()
         )
 
-        self.assertIsNone(self.product.primary_image)
+        self.assertEqual(self.product.primary_image, secondary_image)
 
     def test_product_admin_displays_image_preview(self):
         """Verify the product admin displays an image thumbnail."""
@@ -923,3 +924,258 @@ class ProductCatalogueQueryTests(TestCase):
         self.assertContains(response, "In stock")
         self.assertContains(response, "Out of stock")
         self.assertContains(response, self.out_of_stock_product.name)
+
+    def test_product_card_links_to_detail_page(self):
+        """Verify the entire catalogue product card links to its PDP."""
+        response = self.client.get(reverse("product_list"))
+        url = reverse("product_detail", args=[self.active_product.pk])
+
+        self.assertContains(response, f'<a href="{url}"')
+
+
+class ProductDetailViewTests(TestCase):
+    """Test the customer-facing product detail page."""
+
+    def setUp(self):
+        self.category = Category.objects.create(
+            name="Kites",
+            slug="kites",
+        )
+
+        self.active_product = Product.objects.create(
+            category=self.category,
+            sku="KITE-001",
+            name="Active Kite",
+            description="Test description",
+            price=Decimal("500.00"),
+            stock=5,
+            is_active=True,
+        )
+
+        self.inactive_product = Product.objects.create(
+            category=self.category,
+            sku="KITE-002",
+            name="Inactive Kite",
+            description="Test description",
+            price=Decimal("600.00"),
+            stock=5,
+            is_active=False,
+        )
+
+        self.out_of_stock_product = Product.objects.create(
+            category=self.category,
+            sku="KITE-003",
+            name="Out of Stock Kite",
+            description="Test description",
+            price=Decimal("700.00"),
+            stock=0,
+            is_active=True,
+        )
+
+    def test_active_product_detail_returns_200(self):
+        """Verify an active product detail page returns HTTP 200."""
+        response = self.client.get(
+            reverse("product_detail", args=[self.active_product.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_product_detail_url_resolves(self):
+        """Verify the product detail URL resolves to the correct view."""
+
+        url = reverse("product_detail", args=[self.active_product.pk])
+        resolved = resolve(url)
+
+        self.assertEqual(url, f"/products/{self.active_product.pk}/")
+        self.assertEqual(resolved.func, product_detail)
+
+    def test_product_detail_uses_correct_template(self):
+        """Verify the product detail page uses the correct template."""
+        response = self.client.get(reverse(
+            "product_detail", args=[self.active_product.pk]
+            ))
+
+        self.assertTemplateUsed(response, "products/product_detail.html")
+
+    def test_product_detail_context_contains_requested_product(self):
+        """Verify the requested product is passed to the template context."""
+        response = self.client.get(reverse(
+                    "product_detail", args=[self.active_product.pk]
+                    ))
+
+        self.assertEqual(
+            self.active_product,
+            response.context["product"]
+            )
+
+    def test_nonexistent_product_detail_returns_404(self):
+        """Verify a nonexistent product detail page returns HTTP 404."""
+        response = self.client.get(reverse(
+            "product_detail", args=[99999]
+            ))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_inactive_product_detail_returns_404(self):
+        """Verify an inactive product detail page returns HTTP 404."""
+        response = self.client.get(reverse(
+            "product_detail", args=[self.inactive_product.pk]
+            ))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_out_of_stock_product_detail_returns_200(self):
+        """Verify an active out-of-stock product
+        detail page remains accessible."""
+        response = self.client.get(reverse(
+            "product_detail", args=[self.out_of_stock_product.pk]
+            ))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_product_detail_displays_name_description_and_price(self):
+        """Verify the product detail page displays name,
+        description and price."""
+        response = self.client.get(reverse(
+            "product_detail", args=[self.active_product.pk]
+            ))
+
+        self.assertContains(
+            response, self.active_product.name
+            )
+        self.assertContains(
+            response,
+            self.active_product.description
+            )
+        self.assertContains(
+            response,
+            f"{self.active_product.price:.2f}"
+            )
+
+    def test_product_detail_displays_availability(self):
+        """Verify product detail pages display
+        the correct availability status."""
+        response = self.client.get(reverse(
+            "product_detail", args=[self.active_product.pk]
+            ))
+        response_out_of_stock = self.client.get(reverse(
+            "product_detail", args=[self.out_of_stock_product.pk]
+            ))
+
+        self.assertContains(
+            response, "In stock"
+            )
+        self.assertContains(
+            response_out_of_stock, "Out of stock"
+            )
+
+    def test_product_detail_displays_primary_image(self):
+        """Verify the PDP displays the product's primary image."""
+        ProductImage.objects.create(
+            product=self.active_product,
+            image="products/test-kite.webp",
+            is_primary=True
+        )
+        response = self.client.get(reverse(
+            "product_detail", args=[self.active_product.pk]
+            ))
+
+        self.assertContains(
+            response, "products/test-kite.webp"
+            )
+
+    def test_product_detail_displays_fallback_image(self):
+        """Verify the PDP displays a fallback when no image exists."""
+        response = self.client.get(reverse(
+            "product_detail", args=[self.active_product.pk]
+            ))
+
+        self.assertContains(
+            response, "default-image-fallback.webp"
+            )
+
+    def test_product_detail_displays_additional_images(self):
+        """Verify the PDP displays additional product images."""
+        ProductImage.objects.create(
+            product=self.active_product,
+            image="products/primary-image.webp",
+            is_primary=True
+        )
+        ProductImage.objects.create(
+            product=self.active_product,
+            image="products/secondary-image.webp",
+            is_primary=False
+        )
+        response = self.client.get(reverse(
+                    "product_detail", args=[self.active_product.pk]
+                    ))
+
+        self.assertContains(response, "products/primary-image.webp")
+        self.assertContains(response, "products/secondary-image.webp")
+
+    def test_product_detail_displays_category(self):
+        """Verify the product detail page displays the product category."""
+        response = self.client.get(reverse(
+                    "product_detail", args=[self.active_product.pk]
+                    ))
+        self.assertContains(response, self.active_product.category.name)
+
+    def test_product_detail_has_back_to_products_link(self):
+        """Verify the product detail page links back to the catalogue."""
+        response = self.client.get(reverse(
+                    "product_detail", args=[self.active_product.pk]
+                    ))
+        url = reverse("product_list")
+
+        self.assertContains(response, f'<a href="{url}"')
+
+    def test_product_detail_uses_first_image_when_no_primary_exists(self):
+        """Verify PDP displays an image even when none is marked primary."""
+        image = ProductImage.objects.create(
+            product=self.active_product,
+            image="products/secondary-image.webp",
+            is_primary=False
+        )
+        url = reverse("product_detail", args=[self.active_product.pk])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, image.image.url)
+        self.assertNotContains(response, "default-image-fallback.webp")
+
+    def test_pdp_multiple_images_without_primary(self):
+        """Verify PDP displays all images when none is marked primary."""
+        first_image = ProductImage.objects.create(
+            product=self.active_product,
+            image="products/primary-image.webp",
+            is_primary=False
+        )
+        second_image = ProductImage.objects.create(
+            product=self.active_product,
+            image="products/secondary-image.webp",
+            is_primary=False
+        )
+        url = reverse("product_detail", args=[self.active_product.pk])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, first_image.image.url)
+        self.assertContains(response, second_image.image.url)
+        self.assertNotContains(response, "default-image-fallback.webp")
+
+    def test_product_detail_does_not_duplicate_fallback_image(self):
+        first_image = ProductImage.objects.create(
+            product=self.active_product,
+            image="products/primary-image.webp",
+            is_primary=False
+        )
+        second_image = ProductImage.objects.create(
+            product=self.active_product,
+            image="products/secondary-image.webp",
+            is_primary=False
+        )
+        url = reverse("product_detail", args=[self.active_product.pk])
+        response = self.client.get(url)
+
+        self.assertContains(response, first_image.image.url, count=1)
+        self.assertContains(response, second_image.image.url, count=1)
