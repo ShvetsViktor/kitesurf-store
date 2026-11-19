@@ -154,3 +154,34 @@ class ShoppingBagTests(TestCase):
             item["subtotal"],
             self.active_product.price * 2,
         )
+
+    def test_bag_calculates_grand_total(self):
+        """Verify bag total equals the sum of all item subtotals."""
+        active_product_second = Product.objects.create(
+            category=self.category,
+            sku="KITE-005",
+            name="Hectic Kite",
+            description="Test description",
+            price=Decimal("500.00"),
+            stock=5,
+            is_active=True,
+        )
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        self.client.post(
+            reverse("bag_add", args=[active_product_second.pk])
+        )
+        bag = self.client.session.get("bag", {})
+        details = get_bag_details(bag)
+        total = details["total"]
+        expected_total = (self.active_product.price * 2
+                          + active_product_second.price)
+
+        self.assertEqual(
+            total,
+            expected_total
+        )
