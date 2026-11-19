@@ -265,3 +265,36 @@ class ShoppingBagTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertNotIn(str(self.out_of_stock_product.pk), bag)
+
+    def test_cannot_update_zero_or_negative_quantity(self):
+        """Verify zero and negative quantities are rejected."""
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        for quantity in (0, -2):
+            with self.subTest(quantity=quantity):
+                self.client.post(
+                    reverse("bag_update", args=[self.active_product.pk]),
+                    {"quantity": quantity}
+                )
+                bag = self.client.session.get("bag", {})
+
+                self.assertEqual(bag[str(self.active_product.pk)], 1)
+
+    def test_cannot_update_non_numeric_or_missing_quantity(self):
+        """Verify invalid quantity input is rejected without changing the bag."""
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+
+        for data in ({"quantity": "abc"}, {}):
+            with self.subTest(data=data):
+                response = self.client.post(
+                    reverse("bag_update", args=[self.active_product.pk]),
+                    data
+                )
+
+                bag = self.client.session.get("bag", {})
+
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(bag[str(self.active_product.pk)], 1)
