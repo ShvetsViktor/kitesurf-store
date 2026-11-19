@@ -13,3 +13,14 @@ def bag_add(request, product_id):
     request.session["bag"] = bag
 
     return HttpResponse(status=200)
+
+
+def bag_update(request, product_id):
+    """Handle updating a product quantity in the shopping bag."""
+    bag = request.session.get("bag", {})
+    quantity = int(request.POST.get("quantity"))
+    product_id_str = str(product_id)
+    bag[product_id_str] = quantity
+    request.session["bag"] = bag
+
+    return HttpResponse(status=200)
