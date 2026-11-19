@@ -24,3 +24,14 @@ def bag_update(request, product_id):
     request.session["bag"] = bag
 
     return HttpResponse(status=200)
+
+
+def bag_remove(request, product_id):
+    """Handle removing product items in the shopping bag."""
+    bag = request.session.get("bag", {})
+    product_id_str = str(product_id)
+    bag.pop(product_id_str, None)
+
+    request.session["bag"] = bag
+
+    return HttpResponse(status=200)

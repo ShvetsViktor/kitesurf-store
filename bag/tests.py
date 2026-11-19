@@ -109,3 +109,30 @@ class ShoppingBagTests(TestCase):
             bag[str(self.active_product.pk)],
             3
         )
+
+    def test_removing_product_preserves_other_bag_items(self):
+        """Verify removing one product does not affect other bag items."""
+        active_product_second = Product.objects.create(
+            category=self.category,
+            sku="KITE-004",
+            name="Hectic Kite",
+            description="Test description",
+            price=Decimal("500.00"),
+            stock=5,
+            is_active=True,
+        )
+
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        self.client.post(
+            reverse("bag_add", args=[active_product_second.pk])
+        )
+        self.client.post(
+            reverse("bag_remove", args=[self.active_product.pk])
+        )
+        bag = self.client.session.get("bag", {})
+
+        self.assertIn(str(active_product_second.pk), bag)
+        self.assertNotIn(str(self.active_product.pk), bag)
+        self.assertEqual(bag[str(active_product_second.pk)], 1)
