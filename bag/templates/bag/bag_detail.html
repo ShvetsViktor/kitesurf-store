@@ -1,8 +1,14 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
     <h1>Shopping Bag</h1>
     {% for item in items %}
+        {% if item.product.primary_image %}
+            <img src="{{ item.product.primary_image.image.url }}" alt="{{ item.product.name }}">
+        {% else %}
+            <img src="{% static 'images/default-image-fallback.webp' %}" alt="{{ item.product.name }}">
+        {% endif %}
         <p>{{ item.product.name }}</p>
         <p>Price: {{ item.product.price }}</p>
         <p>Quantity: {{ item.quantity }}</p>

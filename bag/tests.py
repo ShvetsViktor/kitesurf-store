@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.test import TestCase
 from django.urls import reverse
 
-from products.models import Category, Product
+from products.models import Category, Product, ProductImage
 from .utils import get_bag_details
 
 
@@ -381,3 +381,43 @@ class ShoppingBagTests(TestCase):
         response = self.client.get(reverse("bag_detail"))
 
         self.assertContains(response, "Total: 1500.00")
+
+    def test_bag_detail_displays_product_image(self):
+        """Verify the bag page displays the product image."""
+        image = ProductImage.objects.create(
+            product=self.active_product,
+            image="products/test-kite.webp",
+            is_primary=True,
+        )
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        response = self.client.get(reverse("bag_detail"))
+        self.assertContains(
+            response, image.image.url
+        )
+
+    def test_bag_detail_displays_fallback_image(self):
+        """Verify the bag page displays a fallback when no product image exists."""
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        response = self.client.get(reverse("bag_detail"))
+        self.assertContains(
+            response, "/static/images/default-image-fallback.webp"
+        )
+
+    def test_bag_detail_uses_first_image_when_no_primary_exists(self):
+        """Verify the bag displays an image when none is marked primary."""
+        image = ProductImage.objects.create(
+            product=self.active_product,
+            image="products/test-kite.webp",
+            is_primary=False,
+        )
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        response = self.client.get(reverse("bag_detail"))
+        self.assertContains(
+            response, image.image.url
+        )
