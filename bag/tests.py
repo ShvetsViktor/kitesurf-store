@@ -79,3 +79,17 @@ class ShoppingBagTests(TestCase):
         bag = session.get("bag")
 
         self.assertEqual(bag[str(self.active_product.pk)], 2)
+
+    def test_cannot_add_nonexistent_product(self):
+        """Verify nonexistent products cannot be added to the bag."""
+        response = self.client.post(
+            reverse(
+                "bag_add",
+                args=[999999],
+            )
+        )
+
+        bag = self.client.session.get("bag", {})
+
+        self.assertEqual(response.status_code, 404)
+        self.assertNotIn("999999", bag)
