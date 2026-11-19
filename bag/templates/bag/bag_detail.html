@@ -2,4 +2,10 @@
 
 {% block content %}
     <h1>Shopping Bag</h1>
+    {% for item in items %}
+        <p>{{ item.product.name }}</p>
+        <p>Price: {{ item.product.price }}</p>
+        <p>Quantity: {{ item.quantity }}</p>
+        <p>Subtotal: {{ item.subtotal }}</p>
+    {% endfor %}
 {% endblock %}
