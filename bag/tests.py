@@ -327,3 +327,8 @@ class ShoppingBagTests(TestCase):
             bag
         )
         self.assertEqual(response.status_code, 404)
+
+    def test_empty_bag_returns_no_items_and_zero_total(self):
+        """Verify an empty bag contains no items and has a zero total."""
+        bag_details = get_bag_details({})
+        self.assertEqual(bag_details, {'items': [], 'total': Decimal('0.00')})
