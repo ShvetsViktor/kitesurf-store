@@ -6,7 +6,7 @@ from products.models import Product
 
 def bag_add(request, product_id):
     """Handle adding a product to the shopping bag."""
-    get_object_or_404(Product, pk=product_id)
+    get_object_or_404(Product, pk=product_id, is_active=True)
     bag = request.session.get("bag", {})
     product_id_str = str(product_id)
     bag[product_id_str] = bag.get(product_id_str, 0) + 1

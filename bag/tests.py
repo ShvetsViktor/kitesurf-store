@@ -185,3 +185,13 @@ class ShoppingBagTests(TestCase):
             total,
             expected_total
         )
+
+    def test_cannot_add_inactive_product_to_bag(self):
+        """Verify inactive products cannot be added to the shopping bag."""
+        response = self.client.post(
+            reverse("bag_add", args=[self.inactive_product.pk])
+        )
+        bag = self.client.session.get("bag", {})
+
+        self.assertNotIn(str(self.inactive_product.pk), bag)
+        self.assertEqual(response.status_code, 404)
