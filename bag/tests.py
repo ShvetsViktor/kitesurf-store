@@ -58,3 +58,24 @@ class ShoppingBagTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(bag, {str(self.active_product.pk): 1})
+
+    def test_adding_same_product_increases_quantity(self):
+        """Verify adding the same product twice increases its quantity."""
+        self.client.post(
+            reverse(
+                "bag_add",
+                args=[self.active_product.pk],
+            )
+        )
+
+        self.client.post(
+            reverse(
+                "bag_add",
+                args=[self.active_product.pk],
+            )
+        )
+
+        session = self.client.session
+        bag = session.get("bag")
+
+        self.assertEqual(bag[str(self.active_product.pk)], 2)
