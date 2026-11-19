@@ -1,7 +1,19 @@
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import render, get_object_or_404
 
 from products.models import Product
+from .utils import get_bag_details
+
+
+def bag_detail(request):
+    """Display the shopping bag with items and total cost."""
+    bag = request.session.get("bag", {})
+
+    return render(
+        request,
+        "bag/bag_detail.html",
+        get_bag_details(bag),
+    )
 
 
 def bag_add(request, product_id):

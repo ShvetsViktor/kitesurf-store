@@ -282,7 +282,8 @@ class ShoppingBagTests(TestCase):
                 self.assertEqual(bag[str(self.active_product.pk)], 1)
 
     def test_cannot_update_non_numeric_or_missing_quantity(self):
-        """Verify invalid quantity input is rejected without changing the bag."""
+        """Verify invalid quantity input
+        is rejected without changing the bag."""
         self.client.post(
             reverse("bag_add", args=[self.active_product.pk])
         )
@@ -332,3 +333,20 @@ class ShoppingBagTests(TestCase):
         """Verify an empty bag contains no items and has a zero total."""
         bag_details = get_bag_details({})
         self.assertEqual(bag_details, {'items': [], 'total': Decimal('0.00')})
+
+    def test_bag_detail_page_returns_200(self):
+        """Verify the shopping bag page returns HTTP 200."""
+        response = self.client.get(reverse("bag_detail"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "bag/bag_detail.html")
+
+    def test_bag_detail_context_contains_items_and_total(self):
+        """Verify the bag page context contains items and the grand total."""
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        response = self.client.get(reverse("bag_detail"))
+
+        self.assertEqual(len(response.context["items"]), 1)
+        self.assertEqual(response.context["total"], Decimal("500.00"))
