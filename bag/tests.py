@@ -205,3 +205,30 @@ class ShoppingBagTests(TestCase):
 
         self.assertNotIn(str(self.out_of_stock_product.pk), bag)
         self.assertEqual(response.status_code, 404)
+
+    def test_cannot_add_more_than_available_stock(self):
+        """Verify bag quantity cannot exceed available product stock."""
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        bag = self.client.session.get("bag", {})
+
+        self.assertEqual(
+            bag[str(self.active_product.pk)],
+            self.active_product.stock
+        )
