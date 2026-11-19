@@ -29,6 +29,8 @@ def bag_update(request, product_id):
     product = get_object_or_404(
         Product,
         pk=product_id,
+        is_active=True,
+        stock__gt=0,
     )
     bag = request.session.get("bag", {})
     quantity = int(request.POST.get("quantity"))

@@ -243,3 +243,25 @@ class ShoppingBagTests(TestCase):
 
         self.assertNotIn("999999", bag)
         self.assertEqual(response.status_code, 404)
+
+    def test_cannot_update_inactive_product(self):
+        """Verify inactive products cannot be updated in the bag."""
+        response = self.client.post(
+            reverse("bag_update", args=[self.inactive_product.pk]),
+            {"quantity": 3}
+        )
+        bag = self.client.session.get("bag", {})
+
+        self.assertEqual(response.status_code, 404)
+        self.assertNotIn(str(self.inactive_product.pk), bag)
+
+    def test_cannot_update_out_of_stock_product(self):
+        """Verify out of stock products cannot be updated in the bag."""
+        response = self.client.post(
+            reverse("bag_update", args=[self.out_of_stock_product.pk]),
+            {"quantity": 3}
+        )
+        bag = self.client.session.get("bag", {})
+
+        self.assertEqual(response.status_code, 404)
+        self.assertNotIn(str(self.out_of_stock_product.pk), bag)
