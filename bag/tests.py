@@ -368,3 +368,16 @@ class ShoppingBagTests(TestCase):
         self.assertContains(response, "500.00")
         self.assertContains(response, "3")
         self.assertContains(response, "1500.00")
+
+    def test_bag_detail_displays_total(self):
+        """Verify the bag page displays the overall shopping bag total."""
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        self.client.post(
+            reverse("bag_update", args=[self.active_product.pk]),
+            {"quantity": 3}
+        )
+        response = self.client.get(reverse("bag_detail"))
+
+        self.assertContains(response, "Total: 1500.00")
