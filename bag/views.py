@@ -26,6 +26,10 @@ def bag_add(request, product_id):
 
 def bag_update(request, product_id):
     """Handle updating a product quantity in the shopping bag."""
+    product = get_object_or_404(
+        Product,
+        pk=product_id,
+    )
     bag = request.session.get("bag", {})
     quantity = int(request.POST.get("quantity"))
     product_id_str = str(product_id)

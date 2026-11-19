@@ -232,3 +232,14 @@ class ShoppingBagTests(TestCase):
             bag[str(self.active_product.pk)],
             self.active_product.stock
         )
+
+    def test_cannot_update_nonexistent_product(self):
+        """Verify nonexistent products cannot be updated in the bag."""
+        response = self.client.post(
+            reverse("bag_update", args=[999999]),
+            {"quantity": 1}
+        )
+        bag = self.client.session.get("bag", {})
+
+        self.assertNotIn("999999", bag)
+        self.assertEqual(response.status_code, 404)
