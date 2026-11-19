@@ -4,6 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from products.models import Category, Product
+from .utils import get_bag_details
 
 
 class ShoppingBagTests(TestCase):
@@ -136,3 +137,20 @@ class ShoppingBagTests(TestCase):
         self.assertIn(str(active_product_second.pk), bag)
         self.assertNotIn(str(self.active_product.pk), bag)
         self.assertEqual(bag[str(active_product_second.pk)], 1)
+
+    def test_bag_calculates_item_subtotal(self):
+        """Verify item subtotal equals product price multiplied by quantity."""
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        bag = self.client.session.get("bag", {})
+        details = get_bag_details(bag)
+        item = details["items"][0]
+
+        self.assertEqual(
+            item["subtotal"],
+            self.active_product.price * 2,
+        )
