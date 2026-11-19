@@ -33,13 +33,16 @@ def bag_update(request, product_id):
         stock__gt=0,
     )
     bag = request.session.get("bag", {})
+    product_id_str = str(product_id)
+    if product_id_str not in bag:
+        return HttpResponse(status=404)
+
     try:
         quantity = int(request.POST.get("quantity"))
     except (ValueError, TypeError):
         return HttpResponse(status=400)
 
     if quantity > 0 and quantity <= product.stock:
-        product_id_str = str(product_id)
         bag[product_id_str] = quantity
         request.session["bag"] = bag
 

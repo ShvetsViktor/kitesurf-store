@@ -314,3 +314,16 @@ class ShoppingBagTests(TestCase):
             bag[str(self.active_product.pk)],
             1
         )
+
+    def test_cannot_update_product_not_in_bag(self):
+        response = self.client.post(
+            reverse("bag_update", args=[self.active_product.pk]),
+            {"quantity": 3}
+        )
+        bag = self.client.session.get("bag", {})
+
+        self.assertNotIn(
+            str(self.active_product.pk),
+            bag
+        )
+        self.assertEqual(response.status_code, 404)
