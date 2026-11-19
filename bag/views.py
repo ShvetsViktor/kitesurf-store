@@ -38,7 +38,7 @@ def bag_update(request, product_id):
     except (ValueError, TypeError):
         return HttpResponse(status=400)
 
-    if quantity > 0:
+    if quantity > 0 and quantity <= product.stock:
         product_id_str = str(product_id)
         bag[product_id_str] = quantity
         request.session["bag"] = bag

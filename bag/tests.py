@@ -298,3 +298,19 @@ class ShoppingBagTests(TestCase):
 
                 self.assertEqual(response.status_code, 400)
                 self.assertEqual(bag[str(self.active_product.pk)], 1)
+
+    def test_cannot_update_quantity_above_stock(self):
+        """Verify bag quantity cannot be updated above available stock."""
+        self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        self.client.post(
+            reverse("bag_update", args=[self.active_product.pk]),
+            {"quantity": 10}
+        )
+        bag = self.client.session.get("bag", {})
+
+        self.assertEqual(
+            bag[str(self.active_product.pk)],
+            1
+        )
