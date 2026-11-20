@@ -380,7 +380,11 @@ class ShoppingBagTests(TestCase):
         )
         response = self.client.get(reverse("bag_detail"))
 
-        self.assertContains(response, "Total: £1500.00")
+        self.assertContains(
+            response,
+            '<span id="bag-total">1500.00</span>',
+            html=True,
+        )
 
     def test_bag_detail_displays_product_image(self):
         """Verify the bag page displays the product image."""
