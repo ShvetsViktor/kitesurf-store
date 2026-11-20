@@ -640,3 +640,20 @@ class ShoppingBagTests(TestCase):
             f'href="{reverse("product_list")}"',
         )
         self.assertContains(response, "Continue Shopping")
+
+    def test_update_returns_subtotal_and_total(self):
+        """Verify quantity updates return recalculated bag totals."""
+        session = self.client.session
+        session["bag"] = {str(self.active_product.pk): 1}
+        session.save()
+
+        response = self.client.post(
+            reverse("bag_update", args=[self.active_product.pk]),
+            {"quantity": 3},
+        )
+
+        data = response.json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["subtotal"], "1500.00")
+        self.assertEqual(data["total"], "1500.00")

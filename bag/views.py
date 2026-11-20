@@ -78,9 +78,13 @@ def bag_update(request, product_id):
     bag[product_id_str] = quantity
     request.session["bag"] = bag
 
+    bag_details = get_bag_details(bag)
+
     return JsonResponse({
         "success": True,
         "quantity": quantity,
+        "subtotal": str(product.price * quantity),
+        "total": str(bag_details["total"]),
     })
 
 
