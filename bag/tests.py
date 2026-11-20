@@ -661,3 +661,16 @@ class ShoppingBagTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data["subtotal"], "1500.00")
         self.assertEqual(data["total"], "1500.00")
+
+    def test_remove_returns_updated_total(self):
+        """Verify removing a product returns the updated bag total."""
+        session = self.client.session
+        session["bag"] = {str(self.active_product.pk): 1}
+        session.save()
+
+        response = self.client.post(
+            reverse("bag_remove", args=[self.active_product.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["total"], "0.00")

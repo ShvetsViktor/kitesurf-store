@@ -90,11 +90,14 @@ def bag_update(request, product_id):
 
 @require_POST
 def bag_remove(request, product_id):
-    """Handle removing product items in the shopping bag."""
+    """Remove a product from the shopping bag."""
     bag = request.session.get("bag", {})
-    product_id_str = str(product_id)
-    bag.pop(product_id_str, None)
-
+    bag.pop(str(product_id), None)
     request.session["bag"] = bag
 
-    return JsonResponse({"success": True})
+    bag_details = get_bag_details(bag)
+
+    return JsonResponse({
+        "success": True,
+        "total": str(bag_details["total"]),
+    })
