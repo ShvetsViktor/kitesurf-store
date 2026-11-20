@@ -89,4 +89,4 @@ def bag_remove(request, product_id):
 
     request.session["bag"] = bag
 
-    return HttpResponse(status=200)
+    return JsonResponse({"success": True})

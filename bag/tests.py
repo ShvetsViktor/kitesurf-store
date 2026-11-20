@@ -556,3 +556,20 @@ class ShoppingBagTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertFalse(response.json()["success"])
+
+    def test_remove_product_returns_json_response(self):
+        """Verify removing a product returns a JSON response."""
+        session = self.client.session
+        session["bag"] = {str(self.active_product.pk): 1}
+        session.save()
+
+        response = self.client.post(
+            reverse("bag_remove", args=[self.active_product.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["success"])
+        self.assertNotIn(
+            str(self.active_product.pk),
+            self.client.session["bag"],
+        )
