@@ -380,7 +380,7 @@ class ShoppingBagTests(TestCase):
         )
         response = self.client.get(reverse("bag_detail"))
 
-        self.assertContains(response, "Total: 1500.00")
+        self.assertContains(response, "Total: £1500.00")
 
     def test_bag_detail_displays_product_image(self):
         """Verify the bag page displays the product image."""
@@ -623,3 +623,10 @@ class ShoppingBagTests(TestCase):
             f'action="{reverse("bag_remove", args=[self.active_product.pk])}"',
         )
         self.assertContains(response, "Remove")
+
+    def test_empty_bag_displays_message(self):
+        """Verify empty shopping bag displays a helpful message."""
+        response = self.client.get(reverse("bag_detail"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Your shopping bag is empty.")
