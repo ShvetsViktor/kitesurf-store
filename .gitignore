@@ -16,3 +16,5 @@ env.py
 htmlcov/
 staticfiles/
 media/
+node_modules/
+coverage/

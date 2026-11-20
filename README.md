@@ -28,7 +28,8 @@ KiteSurf Store is being developed as an original Django application for the **Ga
 6. [Development](#development)
 7. [Product Catalogue](#product-catalogue)
 8. [Product Detail Page](#product-detail-page)
-9. [AI Tools Usage](#ai-tools-usage)
+9. [Shopping Bag](#shopping-bag)
+10. [AI Tools Usage](#ai-tools-usage)
 
 Additional sections will be added as development progresses.
 
@@ -727,6 +728,9 @@ Primary and outline-primary button styles have been implemented but have not yet
 | SQLite in-memory | Fast, isolated automated testing |
 | pytest | Automated test runner and concise test reporting |
 | pytest-django | Django integration for pytest |
+| Node.js and npm | JavaScript test tooling and package management |
+| Jest | JavaScript unit testing |
+| jest-environment-jsdom | Browser-like DOM environment for Jest tests |
 | Django Templates | Server-rendered HTML |
 | Bootstrap 5 | Responsive user interface |
 | JavaScript | Client-side functionality |
@@ -881,6 +885,38 @@ Check migration consistency:
 python manage.py makemigrations --check --dry-run
 ```
 
+#### JavaScript Testing (Jest)
+
+JavaScript tests use Jest with `jest-environment-jsdom` to simulate browser DOM interactions. JavaScript dependencies are managed separately from Python dependencies through `package.json` and `package-lock.json`.
+
+Install the JavaScript development dependencies from the project root:
+
+```bash
+npm install
+```
+
+The root-level `jest.config.cjs` configures `jsdom` and discovers test files in `tests/js/`. Django/Python tests remain in their respective applications.
+
+Run the JavaScript test suite:
+
+```bash
+npm test
+```
+
+The shopping bag tests are located in `tests/js/bag.test.js`. They use a mocked Fetch API response to verify that the browser interface updates correctly; Django backend and session validation are tested separately in Python.
+
+**Latest confirmed JavaScript test run (20 November 2026):** 3 Jest tests passed (1 test suite).
+
+#### Latest Shopping Bag Backend Test Results — November 2026
+
+| Check | Result |
+| --- | --- |
+| Complete Django test suite | PASS — 126 tests, 6 subtests |
+| Django system checks | PASS — 0 issues |
+| Jest shopping bag tests | PASS — 3 tests |
+
+These are the latest individually confirmed results. The full test suites and Django system checks will be rerun after Header integration and shopping bag styling are complete.
+
 #### PLAN05 Test Results — 10 November 2026
 
 | Test Group | Tests | Result |
@@ -1034,7 +1070,7 @@ The customer-facing product catalogue, including product search and category fil
 
 The catalogue was manually verified on Heroku on 12 November 2026. Product listings, images, fallback images, stock availability, search, category filtering and combined filtering work as expected.
 
-Individual product detail pages were implemented and deployed during PLAN08. Customer accounts, shopping bag, checkout and payments remain to be developed.
+Individual product detail pages were implemented and deployed during PLAN08. The session-based shopping bag is now implemented locally and is being finalised in Issue #44; Header integration, styling, final verification and deployment remain pending. Customer accounts, checkout and payments remain to be developed.
 
 #### Product Detail Page Deployment — 17 November 2026
 
@@ -1190,7 +1226,7 @@ Form labels use Bootstrap's `visually-hidden` class to remain accessible to assi
 
 - Product detail pages are now implemented (PLAN08).
 - Product cards now link to their corresponding product detail pages.
-- Shopping bag and checkout functionality are not yet implemented.
+- Session-based shopping bag functionality has since been implemented locally (Issue #44); Header integration, styling and deployment verification remain pending. Checkout is not yet implemented.
 - Price sorting and related products remain optional features.
 
 ### Deployment Status
@@ -1282,6 +1318,75 @@ All ten planned local PDP manual scenarios passed. After the feature branch was 
 | Heroku logs — no HTTP 500 errors observed | PASS |
 
 **Result:** PLAN08 / Issue #41 completed, merged, deployed and verified on 17 November 2026.
+
+---
+
+## Shopping Bag
+
+**Status:** In Progress — FEAT01 / GitHub Issue #44 (November 2026).
+
+The session-based shopping bag is implemented locally. The remaining work is Header integration, shopping bag page styling, final verification, merging PR #45 and Heroku deployment verification.
+
+### Implementation
+
+The dedicated `bag` Django application stores selected product IDs and quantities in Django Sessions. Anonymous visitors can use the shopping bag without signing in. No separate shopping bag database model is required.
+
+An example session structure is:
+
+```python
+{
+    "1": 2,
+    "5": 1
+}
+```
+
+The application retrieves product information from the existing `Product` model and calculates item subtotals and the overall total using Python `Decimal`.
+
+### Shopping Bag Endpoints
+
+| Endpoint | Purpose |
+| --- | --- |
+| `/bag/` | Display shopping bag contents and totals |
+| `/bag/add/<product_id>/` | Add a product to the shopping bag |
+| `/bag/update/<product_id>/` | Update the quantity of a bag item |
+| `/bag/remove/<product_id>/` | Remove a product from the bag |
+
+Add, update and remove operations accept POST requests and return JSON responses. Server-side validation rejects invalid product IDs, unavailable products, malformed or non-positive quantities and quantities exceeding stock. Invalid requests do not overwrite valid quantities already stored in the session.
+
+### Customer Interface and JavaScript
+
+- Product Detail Pages provide an Add to Bag form for available products.
+- The Shopping Bag page displays selected product images, names, prices, quantities, item subtotals and the overall total.
+- Customers can update quantities or remove products.
+- An empty-bag message appears when no products remain.
+- A Continue Shopping link returns customers to the catalogue.
+- `static/js/bag.js` uses the Fetch API to submit Add, Update and Remove requests without reloading the page.
+- The script updates item subtotals and totals, removes deleted items from the DOM and displays success or error feedback.
+
+### Automated Testing
+
+Django tests cover session persistence, product availability, quantity validation, JSON responses, totals, HTTP methods and page rendering. JavaScript tests use Jest and jsdom, with mocked Fetch API responses.
+
+**Latest confirmed results:**
+
+| Check | Result |
+| --- | --- |
+| Django automated tests | PASS — 126 tests, 6 subtests |
+| Django system checks | PASS — 0 issues |
+| Jest tests (`tests/js/bag.test.js`) | PASS — 3 tests |
+
+The three Jest tests cover subtotal and total updates, product removal and the empty-bag message after removing the final product. Backend error handling and session validation are covered by Django tests; key user journeys have also been manually verified locally.
+
+### Remaining Work
+
+- [ ] Add a shopping bag icon/link and item counter to the shared Header.
+- [ ] Make the item count available to shared templates and update it asynchronously after bag operations.
+- [ ] Complete shopping bag page styling using the existing Coastal Minimal design system.
+- [ ] Verify the finished Header and shopping bag interface manually.
+- [ ] Rerun the full Django and Jest test suites and Django system checks.
+- [ ] Merge PR #45 into `main` and verify the deployed feature on Heroku.
+
+The shopping bag is **not yet marked as completed or deployed**. Checkout, payment processing and order creation are separate future development stages.
 
 ---
 
