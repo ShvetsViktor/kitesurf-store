@@ -485,3 +485,46 @@ class ShoppingBagTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["quantity"], 3)
+
+    def test_update_rejects_quantity_exceeding_stock(self):
+        """Verify quantity cannot exceed available stock."""
+        session = self.client.session
+        session["bag"] = {str(self.active_product.pk): 1}
+        session.save()
+
+        response = self.client.post(
+            reverse("bag_update", args=[self.active_product.pk]),
+            {"quantity": self.active_product.stock + 1},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            self.client.session["bag"][str(self.active_product.pk)],
+            1,
+        )
+
+    def test_update_rejects_zero_quantity(self):
+        """Verify zero quantity is rejected."""
+        session = self.client.session
+        session["bag"] = {str(self.active_product.pk): 1}
+        session.save()
+
+        response = self.client.post(
+            reverse("bag_update", args=[self.active_product.pk]),
+            {"quantity": 0},
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_update_rejects_negative_quantity(self):
+        """Verify negative quantity is rejected."""
+        session = self.client.session
+        session["bag"] = {str(self.active_product.pk): 1}
+        session.save()
+
+        response = self.client.post(
+            reverse("bag_update", args=[self.active_product.pk]),
+            {"quantity": -1},
+        )
+
+        self.assertEqual(response.status_code, 400)

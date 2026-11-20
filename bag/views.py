@@ -63,13 +63,18 @@ def bag_update(request, product_id):
     except (ValueError, TypeError):
         return HttpResponse(status=400)
 
-    if 0 < quantity <= product.stock:
-        bag[product_id_str] = quantity
-        request.session["bag"] = bag
+    if quantity <= 0 or quantity > product.stock:
+        return JsonResponse(
+            {"success": False, "error": "Invalid quantity."},
+            status=400,
+        )
+
+    bag[product_id_str] = quantity
+    request.session["bag"] = bag
 
     return JsonResponse({
         "success": True,
-        "quantity": bag[product_id_str],
+        "quantity": quantity,
     })
 
 
