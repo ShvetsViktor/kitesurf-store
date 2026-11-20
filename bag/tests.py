@@ -528,3 +528,31 @@ class ShoppingBagTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 400)
+
+    def test_update_invalid_quantity_returns_json_error(self):
+        """Verify invalid quantity returns a JSON error."""
+        session = self.client.session
+        session["bag"] = {str(self.active_product.pk): 1}
+        session.save()
+
+        response = self.client.post(
+            reverse("bag_update", args=[self.active_product.pk]),
+            {"quantity": "abc"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(response.json()["success"])
+
+    def test_update_empty_quantity_returns_json_error(self):
+        """Verify empty quantity returns a JSON error."""
+        session = self.client.session
+        session["bag"] = {str(self.active_product.pk): 1}
+        session.save()
+
+        response = self.client.post(
+            reverse("bag_update", args=[self.active_product.pk]),
+            {"quantity": ""},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(response.json()["success"])

@@ -61,7 +61,10 @@ def bag_update(request, product_id):
     try:
         quantity = int(request.POST.get("quantity"))
     except (ValueError, TypeError):
-        return HttpResponse(status=400)
+        return JsonResponse(
+            {"success": False, "error": "Invalid quantity."},
+            status=400,
+        )
 
     if quantity <= 0 or quantity > product.stock:
         return JsonResponse(
