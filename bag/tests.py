@@ -630,3 +630,13 @@ class ShoppingBagTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Your shopping bag is empty.")
+
+    def test_bag_page_displays_continue_shopping_link(self):
+        """Verify shopping bag provides navigation to the catalogue."""
+        response = self.client.get(reverse("bag_detail"))
+
+        self.assertContains(
+            response,
+            f'href="{reverse("product_list")}"',
+        )
+        self.assertContains(response, "Continue Shopping")
