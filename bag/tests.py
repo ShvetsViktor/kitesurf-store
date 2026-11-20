@@ -471,3 +471,17 @@ class ShoppingBagTests(TestCase):
             self.client.session["bag"][str(self.active_product.pk)],
             self.active_product.stock,
         )
+
+    def test_update_product_returns_json_response(self):
+        """Verify updating quantity returns the new quantity."""
+        session = self.client.session
+        session["bag"] = {str(self.active_product.pk): 1}
+        session.save()
+
+        response = self.client.post(
+            reverse("bag_update", args=[self.active_product.pk]),
+            {"quantity": 3},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["quantity"], 3)
