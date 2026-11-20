@@ -11,7 +11,30 @@
         {% endif %}
         <p>{{ item.product.name }}</p>
         <p>Price: {{ item.product.price }}</p>
-        <p>Quantity: {{ item.quantity }}</p>
+        <form
+            action="{% url 'bag_update' item.product.pk %}"
+            method="post"
+            class="bag-update-form"
+        >
+            {% csrf_token %}
+
+            <label for="quantity-{{ item.product.pk }}">
+                Quantity:
+            </label>
+
+            <input
+                type="number"
+                id="quantity-{{ item.product.pk }}"
+                name="quantity"
+                value="{{ item.quantity }}"
+                min="1"
+                max="{{ item.product.stock }}"
+            >
+
+            <button type="submit" class="btn btn-outline-primary">
+                Update
+            </button>
+        </form>
         <p>Subtotal: {{ item.subtotal }}</p>
     {% endfor %}
     <p>Total: {{ total }}</p>

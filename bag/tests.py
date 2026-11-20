@@ -594,3 +594,18 @@ class ShoppingBagTests(TestCase):
             reverse("bag_remove", args=[self.active_product.pk])
         )
         self.assertEqual(response.status_code, 405)
+
+    def test_bag_page_displays_quantity_update_form(self):
+        """Verify shopping bag displays a quantity update form."""
+        session = self.client.session
+        session["bag"] = {str(self.active_product.pk): 1}
+        session.save()
+
+        response = self.client.get(reverse("bag_detail"))
+
+        self.assertContains(
+            response,
+            f'action="{reverse("bag_update", args=[self.active_product.pk])}"',
+        )
+        self.assertContains(response, 'name="quantity"')
+        self.assertContains(response, 'method="post"')
