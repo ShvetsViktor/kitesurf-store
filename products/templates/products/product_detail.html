@@ -46,9 +46,13 @@
                     <p class="fs-3 fw-bold mb-3">£{{ product.price }}</p>
                     {% if product.is_available %}
                         <p class="text-success fw-semibold">In stock</p>
-                        <form action="{% url "bag_add" product.pk %}" method="post">
+                        <form
+                            method="post"
+                            action="{% url 'bag_add' product.pk %}"
+                            id="add-to-bag-form"
+                        >
                             {% csrf_token %}
-                                <button type="submit">Add to Bag</button>
+                            <button type="submit">Add to Bag</button>
                         </form>
                     {% else %}
                         <p class="text-danger fw-semibold">Out of stock</p>
@@ -59,4 +63,8 @@
             </div>
         </div>
     </div>
+{% endblock %}
+{% block extra_js %}
+    {{ block.super }}
+    <script src="{% static 'js/bag.js' %}" defer></script>
 {% endblock %}
