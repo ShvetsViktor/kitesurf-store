@@ -573,3 +573,24 @@ class ShoppingBagTests(TestCase):
             str(self.active_product.pk),
             self.client.session["bag"],
         )
+
+    def test_bag_add_rejects_get_request(self):
+        """Verify adding products requires POST."""
+        response = self.client.get(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+        self.assertEqual(response.status_code, 405)
+
+    def test_bag_update_rejects_get_request(self):
+        """Verify updating quantities requires POST."""
+        response = self.client.get(
+            reverse("bag_update", args=[self.active_product.pk])
+        )
+        self.assertEqual(response.status_code, 405)
+
+    def test_bag_remove_rejects_get_request(self):
+        """Verify removing products requires POST."""
+        response = self.client.get(
+            reverse("bag_remove", args=[self.active_product.pk])
+        )
+        self.assertEqual(response.status_code, 405)

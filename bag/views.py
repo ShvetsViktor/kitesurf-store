@@ -1,5 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_POST
 
 from products.models import Product
 from .utils import get_bag_details
@@ -16,6 +17,7 @@ def bag_detail(request):
     )
 
 
+@require_POST
 def bag_add(request, product_id):
     """Add an available product to the session shopping bag."""
     product = get_object_or_404(
@@ -45,6 +47,7 @@ def bag_add(request, product_id):
     })
 
 
+@require_POST
 def bag_update(request, product_id):
     """Handle updating a product quantity in the shopping bag."""
     product = get_object_or_404(
@@ -81,6 +84,7 @@ def bag_update(request, product_id):
     })
 
 
+@require_POST
 def bag_remove(request, product_id):
     """Handle removing product items in the shopping bag."""
     bag = request.session.get("bag", {})
