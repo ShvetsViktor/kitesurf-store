@@ -35,6 +35,17 @@
                 Update
             </button>
         </form>
+        <form
+            action="{% url 'bag_remove' item.product.pk %}"
+            method="post"
+            class="bag-remove-form"
+        >
+            {% csrf_token %}
+
+            <button type="submit" class="btn btn-outline-danger">
+                Remove
+            </button>
+        </form>
         <p>Subtotal: {{ item.subtotal }}</p>
     {% endfor %}
     <p>Total: {{ total }}</p>
