@@ -30,9 +30,14 @@ def bag_add(request, product_id):
 
     current_quantity = bag.get(product_id_str, 0)
 
-    if current_quantity < product.stock:
-        bag[product_id_str] = current_quantity + 1
-        request.session["bag"] = bag
+    if current_quantity >= product.stock:
+        return JsonResponse(
+            {"success": False, "error": "Insufficient stock."},
+            status=400,
+        )
+
+    bag[product_id_str] = current_quantity + 1
+    request.session["bag"] = bag
 
     return JsonResponse({
         "success": True,

@@ -453,3 +453,21 @@ class ShoppingBagTests(TestCase):
             self.client.session["bag"],
             {str(self.active_product.pk): 1},
         )
+
+    def test_add_product_rejects_stock_limit(self):
+        """Verify adding beyond stock returns an error."""
+        session = self.client.session
+        session["bag"] = {
+            str(self.active_product.pk): self.active_product.stock
+        }
+        session.save()
+
+        response = self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            self.client.session["bag"][str(self.active_product.pk)],
+            self.active_product.stock,
+        )
