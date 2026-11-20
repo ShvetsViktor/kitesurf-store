@@ -398,7 +398,8 @@ class ShoppingBagTests(TestCase):
         )
 
     def test_bag_detail_displays_fallback_image(self):
-        """Verify the bag page displays a fallback when no product image exists."""
+        """Verify the bag page displays
+        a fallback when no product image exists."""
         self.client.post(
             reverse("bag_add", args=[self.active_product.pk])
         )
@@ -420,4 +421,35 @@ class ShoppingBagTests(TestCase):
         response = self.client.get(reverse("bag_detail"))
         self.assertContains(
             response, image.image.url
+        )
+
+    def test_out_of_stock_product_has_no_add_to_bag_form(self):
+        """Verify out-of-stock products cannot be added from the PDP."""
+        response = self.client.get(
+            reverse("product_detail", args=[self.out_of_stock_product.pk])
+        )
+        url = reverse(
+            "bag_add",
+            args=[self.out_of_stock_product.pk]
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, f'action="{url}"')
+
+    def test_add_product_returns_json_response(self):
+        """Verify adding a product returns JSON with updated quantity."""
+        response = self.client.post(
+            reverse("bag_add", args=[self.active_product.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/json")
+
+        data = response.json()
+
+        self.assertTrue(data["success"])
+        self.assertEqual(data["quantity"], 1)
+
+        self.assertEqual(
+            self.client.session["bag"],
+            {str(self.active_product.pk): 1},
         )

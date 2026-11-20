@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
 
 from products.models import Product
@@ -17,23 +17,27 @@ def bag_detail(request):
 
 
 def bag_add(request, product_id):
-    """Handle adding a product to the shopping bag."""
+    """Add an available product to the session shopping bag."""
     product = get_object_or_404(
         Product,
         pk=product_id,
         is_active=True,
-        stock__gt=0
+        stock__gt=0,
     )
+
     bag = request.session.get("bag", {})
     product_id_str = str(product_id)
+
     current_quantity = bag.get(product_id_str, 0)
 
     if current_quantity < product.stock:
-        bag[product_id_str] = bag.get(product_id_str, 0) + 1
+        bag[product_id_str] = current_quantity + 1
+        request.session["bag"] = bag
 
-    request.session["bag"] = bag
-
-    return HttpResponse(status=200)
+    return JsonResponse({
+        "success": True,
+        "quantity": bag.get(product_id_str, 0),
+    })
 
 
 def bag_update(request, product_id):
