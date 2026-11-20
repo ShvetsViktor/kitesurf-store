@@ -1179,3 +1179,15 @@ class ProductDetailViewTests(TestCase):
 
         self.assertContains(response, first_image.image.url, count=1)
         self.assertContains(response, second_image.image.url, count=1)
+
+    def test_product_detail_displays_add_to_bag_form(self):
+        """Verify an available product has an Add to Bag form."""
+        response = self.client.get(
+            reverse("product_detail", args=[self.active_product.pk])
+        )
+        self.assertEqual(response.status_code, 200)
+        url = reverse("bag_add", args=[self.active_product.pk])
+
+        self.assertContains(response, f'action="{url}"')
+        self.assertContains(response, 'method="post"')
+        self.assertContains(response, "Add to Bag")
