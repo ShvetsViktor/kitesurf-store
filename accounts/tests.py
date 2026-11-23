@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from allauth.account.models import EmailAddress
+from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 
 
 User = get_user_model()
@@ -164,7 +164,7 @@ class CustomerAuthenticationTests(TestCase):
         email_address.verified = False
         email_address.save()
 
-        response = self.client.post(
+        self.client.post(
             reverse("account_login"),
             {
                 "login": self.user.email,
@@ -191,4 +191,107 @@ class CustomerAuthenticationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(
             response.wsgi_request.user.is_authenticated
+        )
+
+
+class CustomerEmailVerificationTests(TestCase):
+    """Test customer email verification through django-allauth."""
+
+    def setUp(self):
+        """Create a customer with an unverified email address."""
+        self.password = "SecureTestPassword123!"
+
+        self.user = get_user_model().objects.create_user(
+            username="verificationcustomer",
+            email="verification@example.com",
+            password=self.password,
+        )
+
+        self.email_address = EmailAddress.objects.create(
+            user=self.user,
+            email=self.user.email,
+            verified=False,
+            primary=True,
+        )
+
+    def test_unverified_customer_cannot_login(self):
+        """Customers must verify their email before logging in."""
+        self.client.post(
+            reverse("account_login"),
+            {
+                "login": self.user.email,
+                "password": self.password,
+            },
+        )
+
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_valid_confirmation_link_verifies_email(self):
+        """A valid confirmation link verifies the email address."""
+        confirmation = EmailConfirmationHMAC(self.email_address)
+
+        response = self.client.post(
+            reverse(
+                "account_confirm_email",
+                args=[confirmation.key],
+            ),
+        )
+
+        self.email_address.refresh_from_db()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(self.email_address.verified)
+
+    def test_invalid_confirmation_link_does_not_verify_email(self):
+        """An invalid confirmation link must not verify an email."""
+        response = self.client.get(
+            reverse(
+                "account_confirm_email",
+                args=["invalid-confirmation-key"],
+            ),
+        )
+
+        self.email_address.refresh_from_db()
+
+        self.assertFalse(self.email_address.verified)
+        self.assertIn(response.status_code, (200, 404))
+
+    def test_rejected_confirmation_key_does_not_verify_email(self):
+        """Expired confirmation links must not verify email addresses."""
+        from unittest.mock import patch
+
+        confirmation = EmailConfirmationHMAC(self.email_address)
+
+        with patch(
+            "allauth.account.models.EmailConfirmationHMAC.from_key",
+            return_value=None,
+        ):
+            response = self.client.get(
+                reverse(
+                    "account_confirm_email",
+                    args=[confirmation.key],
+                ),
+            )
+
+        self.email_address.refresh_from_db()
+
+        self.assertFalse(self.email_address.verified)
+        self.assertIn(response.status_code, (200, 404))
+
+    def test_verified_customer_can_login(self):
+        """Customers can log in after confirming their email."""
+        self.email_address.verified = True
+        self.email_address.save()
+
+        response = self.client.post(
+            reverse("account_login"),
+            {
+                "login": self.user.email,
+                "password": self.password,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            self.client.session.get("_auth_user_id")
         )

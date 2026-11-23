@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6 text-center">
+
+            <h1 class="mb-4">Confirm Your Email</h1>
+
+            {% if confirmation %}
+                <p>
+                    Please confirm your email address:
+                    <strong>{{ confirmation.email_address.email }}</strong>
+                </p>
+
+                <form
+                    method="post"
+                    action="{% url 'account_confirm_email' confirmation.key %}"
+                >
+                    {% csrf_token %}
+
+                    <button type="submit" class="btn btn-primary">
+                        Confirm Email
+                    </button>
+                </form>
+            {% else %}
+                <div class="alert alert-danger" role="alert">
+                    This confirmation link is invalid or has expired.
+                </div>
+
+                <a
+                    href="{% url 'account_login' %}"
+                    class="btn btn-outline-primary"
+                >
+                    Back to Login
+                </a>
+            {% endif %}
+
+        </div>
+    </div>
+</section>
+{% endblock %}
