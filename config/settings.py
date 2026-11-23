@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'storages',
     'products',
     'bag',
-    'accounts',
+    "accounts.apps.AccountsConfig",
 ]
 
 MIDDLEWARE = [

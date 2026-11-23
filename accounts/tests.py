@@ -7,6 +7,8 @@ from django.urls import reverse
 
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 
+from accounts.models import CustomerProfile
+
 
 User = get_user_model()
 
@@ -354,3 +356,80 @@ class CustomerPasswordResetTests(TestCase):
         self.assertTrue(
             self.user.check_password("NewPassword123!")
         )
+
+
+class CustomerProfileTests(TestCase):
+    """Test customer profile lifecycle."""
+
+    def setUp(self):
+        """Create a customer."""
+        self.user = get_user_model().objects.create_user(
+            username="profilecustomer",
+            email="profile@example.com",
+            password="SecurePassword123!",
+        )
+
+    def test_profile_created_automatically(self):
+        """A profile is automatically created for a new customer."""
+        self.assertTrue(
+            CustomerProfile.objects.filter(user=self.user).exists()
+        )
+
+    def test_profile_deleted_with_customer(self):
+        """Deleting a customer also removes their profile."""
+        user_id = self.user.pk
+
+        self.user.delete()
+
+        self.assertFalse(
+            CustomerProfile.objects.filter(user_id=user_id).exists()
+        )
+
+
+class CustomerProfileViewTests(TestCase):
+    """Test customer profile access and editing."""
+
+    def setUp(self):
+        """Create a customer."""
+        self.user = get_user_model().objects.create_user(
+            username="profilecustomer",
+            email="profile@example.com",
+            password="SecurePassword123!",
+        )
+        self.url = reverse("customer_profile")
+
+    def test_authenticated_customer_can_view_profile(self):
+        """An authenticated customer can access their profile."""
+        self.client.force_login(self.user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.user.email)
+
+    def test_anonymous_customer_cannot_view_profile(self):
+        """Anonymous visitors are redirected to login."""
+        response = self.client.get(self.url)
+
+        self.assertRedirects(
+            response,
+            f"{reverse('account_login')}?next={self.url}",
+        )
+
+    def test_customer_can_update_profile(self):
+        """A customer can update their first and last name."""
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            self.url,
+            {
+                "first_name": "John",
+                "last_name": "Smith",
+            },
+        )
+
+        self.user.refresh_from_db()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.user.first_name, "John")
+        self.assertEqual(self.user.last_name, "Smith")
