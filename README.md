@@ -210,11 +210,17 @@ These features may be considered for future development.
 
 ### Development Tracking
 
-Each user story is tracked in a GitHub Issue with acceptance criteria and implementation tasks.
+Each user story is tracked in a GitHub Issue with acceptance criteria.
 
-Development progress will be documented through Git commits, automated tests and manual testing.
+Completed user stories:
 
-The implementation will prioritise Must Have requirements before optional functionality.
+- US01 — Browse products (#1).
+- US04 — Update and remove cart items (#4).
+- US18 — Search products (#18).
+
+Implementation details, automated tests and deployment verification are documented in the relevant sections of this README.
+
+Development will continue with the remaining Must Have requirements.
 
 ---
 
