@@ -684,3 +684,32 @@ class ShoppingBagTests(TestCase):
             response,
             f'href="{reverse("bag_detail")}"'
         )
+
+
+class ShoppingBagHeaderTests(TestCase):
+    """Test shopping bag item count in the shared header."""
+
+    def test_header_displays_zero_for_empty_bag(self):
+        """Verify the header displays zero when the bag is empty."""
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(
+            response,
+            'id="bag-count">0</span>'
+        )
+
+    def test_header_displays_total_quantity(self):
+        """Verify the header counts all product quantities."""
+        session = self.client.session
+        session["bag"] = {
+            "3": 2,
+            "7": 1,
+        }
+        session.save()
+
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(
+            response,
+            'id="bag-count">3</span>'
+        )
