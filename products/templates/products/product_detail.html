@@ -52,7 +52,7 @@
                             id="add-to-bag-form"
                         >
                             {% csrf_token %}
-                            <button type="submit">Add to Bag</button>
+                            <button type="submit" class="btn btn-primary">Add to Bag</button>
                         </form>
                     {% else %}
                         <p class="text-danger fw-semibold">Out of stock</p>
