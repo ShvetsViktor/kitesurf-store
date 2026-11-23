@@ -674,3 +674,13 @@ class ShoppingBagTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["total"], "0.00")
+
+    def test_header_contains_shopping_bag_link(self):
+        """Verify the shared header contains a link to the shopping bag."""
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            f'href="{reverse("bag_detail")}"'
+        )
