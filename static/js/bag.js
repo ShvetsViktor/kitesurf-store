@@ -5,6 +5,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.querySelector("#add-to-bag-form");
     const feedback = document.querySelector("#site-feedback");
+    const bagCount = document.querySelector("#bag-count");
 
     if (!form || !feedback) return;
 
@@ -26,6 +27,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error(data.error || "Unable to add product.");
             }
 
+            if (bagCount) {
+                bagCount.textContent = data.bag_count;
+            }
+
             feedback.textContent = "Product added to your bag.";
             feedback.className = "container alert alert-success mt-3";
 
@@ -41,12 +46,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /**
  * Handle shopping bag quantity updates asynchronously.
- * Refresh item subtotals and the bag total without reloading the page.
+ * Refresh item subtotals, bag total and header count without reloading.
  */
 document.addEventListener("DOMContentLoaded", () => {
     const updateForms = document.querySelectorAll(".bag-update-form");
     const feedback = document.querySelector("#site-feedback");
     const bagTotal = document.querySelector("#bag-total");
+    const bagCount = document.querySelector("#bag-count");
 
     updateForms.forEach((form) => {
         form.addEventListener("submit", async (event) => {
@@ -73,6 +79,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 subtotal.textContent = data.subtotal;
                 bagTotal.textContent = data.total;
 
+                if (bagCount) {
+                    bagCount.textContent = data.bag_count;
+                }
+
                 feedback.textContent = "Shopping bag updated.";
                 feedback.className = "container alert alert-success mt-3";
 
@@ -89,13 +99,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /**
  * Remove products from the shopping bag asynchronously.
- * Update the total and display the empty bag state when necessary.
+ * Update the total, header count and empty bag state without reloading.
  */
 document.addEventListener("DOMContentLoaded", () => {
     const removeForms = document.querySelectorAll(".bag-remove-form");
     const feedback = document.querySelector("#site-feedback");
     const bagTotal = document.querySelector("#bag-total");
     const bagContent = document.querySelector("#bag-content");
+    const bagCount = document.querySelector("#bag-count");
 
     if (!feedback || !bagContent) return;
 
@@ -121,6 +132,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 bagItem.remove();
+
+                if (bagCount) {
+                    bagCount.textContent = data.bag_count;
+                }
 
                 if (bagContent.querySelectorAll(".bag-item").length === 0) {
                     bagContent.innerHTML = "<p>Your shopping bag is empty.</p>";

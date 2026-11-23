@@ -44,6 +44,7 @@ def bag_add(request, product_id):
     return JsonResponse({
         "success": True,
         "quantity": bag.get(product_id_str, 0),
+        "bag_count": sum(bag.values()),
     })
 
 
@@ -85,6 +86,7 @@ def bag_update(request, product_id):
         "quantity": quantity,
         "subtotal": str(product.price * quantity),
         "total": str(bag_details["total"]),
+        "bag_count": sum(bag.values()),
     })
 
 
@@ -100,4 +102,5 @@ def bag_remove(request, product_id):
     return JsonResponse({
         "success": True,
         "total": str(bag_details["total"]),
+        "bag_count": sum(bag.values()),
     })

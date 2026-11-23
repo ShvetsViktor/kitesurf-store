@@ -452,6 +452,7 @@ class ShoppingBagTests(TestCase):
 
         self.assertTrue(data["success"])
         self.assertEqual(data["quantity"], 1)
+        self.assertEqual(data["bag_count"], 1)
 
         self.assertEqual(
             self.client.session["bag"],
@@ -489,6 +490,7 @@ class ShoppingBagTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["quantity"], 3)
+        self.assertEqual(response.json()["bag_count"], 3)
 
     def test_update_rejects_quantity_exceeding_stock(self):
         """Verify quantity cannot exceed available stock."""
@@ -573,6 +575,7 @@ class ShoppingBagTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()["success"])
+        self.assertEqual(response.json()["bag_count"], 0)
         self.assertNotIn(
             str(self.active_product.pk),
             self.client.session["bag"],
