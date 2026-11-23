@@ -138,7 +138,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 if (bagContent.querySelectorAll(".bag-item").length === 0) {
-                    bagContent.innerHTML = "<p>Your shopping bag is empty.</p>";
+                    bagContent.innerHTML = `
+                        <div class="card bag-empty-state">
+                            <div class="card-body text-center py-5">
+                                <h2 class="h5 mb-3">Your shopping bag is empty.</h2>
+                                <p class="text-muted mb-0">
+                                    Explore our kitesurfing equipment
+                                    and add something to your bag.
+                                </p>
+                            </div>
+                        </div>
+                    `;
                 } else if (bagTotal) {
                     bagTotal.textContent = data.total;
                 }

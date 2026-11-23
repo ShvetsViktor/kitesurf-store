@@ -80,6 +80,16 @@ p {
     color: var(--color-primary);
 }
 
+/* Shopping bag navigation */
+
+#bag-count {
+    background-color: var(--color-primary) !important;
+    color: #fff;
+    font-size: 0.75rem;
+    min-width: 1.4rem;
+    padding: 0.35rem 0.45rem;
+}
+
 /* Brand logos */
 
 .brand-logo {

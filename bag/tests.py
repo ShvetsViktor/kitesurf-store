@@ -698,7 +698,9 @@ class ShoppingBagHeaderTests(TestCase):
 
         self.assertContains(
             response,
-            'id="bag-count">0</span>'
+            '<span id="bag-count" '
+            'class="badge rounded-pill bg-primary">0</span>',
+            html=True,
         )
 
     def test_header_displays_total_quantity(self):
@@ -714,5 +716,7 @@ class ShoppingBagHeaderTests(TestCase):
 
         self.assertContains(
             response,
-            'id="bag-count">3</span>'
+            '<span id="bag-count" '
+            'class="badge rounded-pill bg-primary">3</span>',
+            html=True,
         )
