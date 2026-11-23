@@ -1070,7 +1070,13 @@ The customer-facing product catalogue, including product search and category fil
 
 The catalogue was manually verified on Heroku on 12 November 2026. Product listings, images, fallback images, stock availability, search, category filtering and combined filtering work as expected.
 
-Individual product detail pages were implemented and deployed during PLAN08. The session-based shopping bag, Header integration and responsive styling are implemented and verified locally in Issue #44; merge and deployment verification remain pending. Customer accounts, checkout and payments remain to be developed.
+Individual product detail pages were implemented and deployed during PLAN08. The session-based shopping bag, Header integration and responsive styling were completed in Issue #44, merged through PR #45 and verified on Heroku on 23 November 2026. Customer accounts, checkout and payments remain to be developed.
+
+#### Shopping Bag Deployment — 23 November 2026
+
+- PR #45 was merged into `main` (merge commit `9a371cc`), closing Issue #44.
+- Shopping Bag functionality, Header item counter and responsive styling were manually verified on Heroku.
+- Final local checks: 129 Django tests passed, 6 subtests passed, 4 Jest tests passed and Django system checks reported 0 issues.
 
 #### Product Detail Page Deployment — 17 November 2026
 
@@ -1226,7 +1232,7 @@ Form labels use Bootstrap's `visually-hidden` class to remain accessible to assi
 
 - Product detail pages are now implemented (PLAN08).
 - Product cards now link to their corresponding product detail pages.
-- Session-based shopping bag functionality, Header integration and responsive styling have been implemented and verified locally (Issue #44); deployment verification remains pending. Checkout is not yet implemented.
+- Session-based shopping bag functionality, Header integration and responsive styling were completed in Issue #44 and verified on Heroku on 23 November 2026. Checkout is not yet implemented.
 - Price sorting and related products remain optional features.
 
 ### Deployment Status
@@ -1323,9 +1329,9 @@ All ten planned local PDP manual scenarios passed. After the feature branch was 
 
 ## Shopping Bag
 
-**Status:** In Progress — FEAT01 / GitHub Issue #44 (November 2026).
+**Status:** Completed and deployed — FEAT01 / GitHub Issue #44 (23 November 2026).
 
-The session-based shopping bag is implemented locally. Header integration, responsive styling and local verification are complete. Merging PR #45 and Heroku deployment verification remain pending.
+The session-based shopping bag, Header integration and responsive styling are complete. PR #45 was merged into `main` (commit `9a371cc`), and the feature was manually verified on Heroku on 23 November 2026.
 
 ### Implementation
 
@@ -1379,16 +1385,16 @@ Django tests cover session persistence, product availability, quantity validatio
 
 The four Jest tests cover Header item-count updates, subtotal and total updates, product removal and the empty-bag message after removing the final product. Backend error handling and session validation are covered by Django tests; key user journeys have also been manually verified locally.
 
-### Remaining Work
+### Completion and Deployment
 
 - [x] Add a shopping bag icon/link and item counter to the shared Header.
 - [x] Make the item count available to shared templates and update it asynchronously after bag operations.
 - [x] Complete shopping bag page styling using the existing Coastal Minimal design system.
 - [x] Verify the finished Header and shopping bag interface manually.
 - [x] Rerun the full Django and Jest test suites and Django system checks.
-- [ ] Merge PR #45 into `main` and verify the deployed feature on Heroku.
+- [x] Merge PR #45 into `main` and verify the deployed feature on Heroku.
 
-The shopping bag is **not yet marked as completed or deployed**. Checkout, payment processing and order creation are separate future development stages.
+**Result:** Issue #44 is closed. Shopping Bag is completed, merged and deployed. Checkout, payment processing and order creation are separate future development stages.
 
 ---
 
