@@ -35,6 +35,13 @@
 
     {% include 'includes/header.html' %}
 
+    <div
+        id="site-feedback"
+        class="container mt-3"
+        role="status"
+        aria-live="polite"
+    ></div>
+
     <main id="main-content" class="flex-grow-1">
         {% block content %}
         {% endblock %}
