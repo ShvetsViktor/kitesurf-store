@@ -1,5 +1,6 @@
 """Tests for customer account functionality."""
 
+from django.core import mail
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -294,4 +295,62 @@ class CustomerEmailVerificationTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(
             self.client.session.get("_auth_user_id")
+        )
+
+
+class CustomerPasswordResetTests(TestCase):
+    """Test customer password reset functionality."""
+
+    def setUp(self):
+        """Create a customer for password reset tests."""
+        self.user = get_user_model().objects.create_user(
+            username="resetcustomer",
+            email="reset@example.com",
+            password="OldPassword123!",
+        )
+
+    def test_password_reset_page_loads(self):
+        """Anonymous customers can access password reset."""
+        response = self.client.get(
+            reverse("account_reset_password")
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_password_reset_sends_email(self):
+        """A registered customer can request a password reset."""
+        response = self.client.post(
+            reverse("account_reset_password"),
+            {"email": self.user.email},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(self.user.email, mail.outbox[0].to)
+
+    def test_password_reset_does_not_change_password_immediately(self):
+        """Requesting a reset does not change the password."""
+        self.client.post(
+            reverse("account_reset_password"),
+            {"email": self.user.email},
+        )
+
+        self.user.refresh_from_db()
+
+        self.assertTrue(
+            self.user.check_password("OldPassword123!")
+        )
+
+    def test_password_can_be_changed_after_reset(self):
+        """A new password replaces the old password after reset."""
+        self.user.set_password("NewPassword123!")
+        self.user.save()
+
+        self.user.refresh_from_db()
+
+        self.assertFalse(
+            self.user.check_password("OldPassword123!")
+        )
+        self.assertTrue(
+            self.user.check_password("NewPassword123!")
         )
