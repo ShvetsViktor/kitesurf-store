@@ -86,3 +86,109 @@ class CustomerRegistrationTests(TestCase):
         email = EmailAddress.objects.get(email="customer@example.com")
 
         self.assertFalse(email.verified)
+
+
+class CustomerAuthenticationTests(TestCase):
+    """Test customer login and logout through django-allauth."""
+
+    def setUp(self):
+        """Create a verified customer for authentication tests."""
+        self.password = "SecureTestPassword123!"
+
+        self.user = User.objects.create_user(
+            username="testcustomer",
+            email="customer@example.com",
+            password=self.password,
+        )
+
+        EmailAddress.objects.create(
+            user=self.user,
+            email=self.user.email,
+            verified=True,
+            primary=True,
+        )
+
+    def test_login_page_available_to_anonymous_user(self):
+        """Anonymous visitors can access the login page."""
+        response = self.client.get(reverse("account_login"))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_customer_can_login_with_valid_credentials(self):
+        """Verified customers can log in using email and password."""
+        response = self.client.post(
+            reverse("account_login"),
+            {
+                "login": self.user.email,
+                "password": self.password,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            str(self.client.session["_auth_user_id"]),
+            str(self.user.pk),
+        )
+
+    def test_invalid_credentials_do_not_authenticate_customer(self):
+        """Invalid passwords must not authenticate customers."""
+        response = self.client.post(
+            reverse("account_login"),
+            {
+                "login": self.user.email,
+                "password": "IncorrectPassword123!",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_customer_can_logout(self):
+        """Logout must invalidate the authenticated session."""
+        self.client.force_login(self.user)
+
+        response = self.client.post(reverse("account_logout"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_anonymous_user_cannot_access_logout_confirmation(self):
+        """Anonymous visitors must not access authenticated logout flow."""
+        response = self.client.get(reverse("account_logout"))
+
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_unverified_customer_cannot_login(self):
+        """Customers must verify their email before logging in."""
+        email_address = EmailAddress.objects.get(user=self.user)
+        email_address.verified = False
+        email_address.save()
+
+        response = self.client.post(
+            reverse("account_login"),
+            {
+                "login": self.user.email,
+                "password": self.password,
+            },
+        )
+
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_authenticated_customer_cannot_access_login_page(self):
+        """Authenticated customers are redirected away from login."""
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("account_login"))
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_logout_get_request_does_not_end_session(self):
+        """Viewing the logout page must not log out the customer."""
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("account_logout"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            response.wsgi_request.user.is_authenticated
+        )
