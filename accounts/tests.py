@@ -512,3 +512,45 @@ class DeliveryAddressCreateTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Enter a valid UK postcode.")
         self.assertFalse(DeliveryAddress.objects.exists())
+
+
+class DeliveryAddressListTests(TestCase):
+    """Test that customers can only view their own addresses."""
+
+    def test_customer_cannot_see_other_customers_addresses(self):
+        """Only addresses belonging to the logged-in customer are shown."""
+        user = get_user_model().objects.create_user(
+            username="customer1",
+            email="customer1@example.com",
+            password="SecurePassword123!",
+        )
+
+        other_user = get_user_model().objects.create_user(
+            username="customer2",
+            email="customer2@example.com",
+            password="SecurePassword123!",
+        )
+
+        own_address = DeliveryAddress.objects.create(
+            profile=user.customer_profile,
+            full_name="John Smith",
+            address_line_1="10 High Street",
+            city="Chorley",
+            postcode="PR7 1AA",
+        )
+
+        other_address = DeliveryAddress.objects.create(
+            profile=other_user.customer_profile,
+            full_name="Jane Brown",
+            address_line_1="25 Market Street",
+            city="Preston",
+            postcode="PR1 2AB",
+        )
+
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("address_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, own_address.address_line_1)
+        self.assertNotContains(response, other_address.address_line_1)
