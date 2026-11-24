@@ -461,3 +461,54 @@ class DeliveryAddressTests(TestCase):
             self.user.customer_profile.delivery_addresses.count(),
             2,
         )
+
+
+class DeliveryAddressCreateTests(TestCase):
+    """Test customer delivery address creation."""
+
+    def setUp(self):
+        """Create a customer and valid address data."""
+        self.user = get_user_model().objects.create_user(
+            username="addresscustomer",
+            email="address@example.com",
+            password="SecurePassword123!",
+        )
+
+        self.valid_data = {
+            "full_name": "John Smith",
+            "address_line_1": "10 High Street",
+            "city": "Chorley",
+            "postcode": "PR7 1AA",
+        }
+
+    def test_customer_can_create_own_address(self):
+        """A saved address belongs to the authenticated customer."""
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("address_create"),
+            self.valid_data,
+        )
+
+        self.assertRedirects(response, reverse("address_list"))
+
+        address = DeliveryAddress.objects.get(
+            profile=self.user.customer_profile,
+        )
+
+        self.assertEqual(address.postcode, "PR7 1AA")
+
+    def test_invalid_uk_postcode_is_rejected(self):
+        """An invalid UK postcode must not be saved."""
+        self.client.force_login(self.user)
+
+        self.valid_data["postcode"] = "INVALID"
+
+        response = self.client.post(
+            reverse("address_create"),
+            self.valid_data,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Enter a valid UK postcode.")
+        self.assertFalse(DeliveryAddress.objects.exists())

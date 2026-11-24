@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
-from .forms import CustomerProfileForm
+from .forms import CustomerProfileForm, DeliveryAddressForm
 
 
 @login_required(login_url="account_login")
@@ -22,4 +22,43 @@ def customer_profile(request):
         request,
         "accounts/profile.html",
         {"form": form},
+    )
+
+
+@login_required(login_url="account_login")
+def address_create(request):
+    """Allow authenticated customers to save a delivery address."""
+    if request.method == "POST":
+        form = DeliveryAddressForm(request.POST)
+
+        if form.is_valid():
+            address = form.save(commit=False)
+            address.profile = request.user.customer_profile
+            address.save()
+
+            messages.success(
+                request,
+                "Delivery address added successfully.",
+            )
+
+            return redirect("address_list")
+    else:
+        form = DeliveryAddressForm()
+
+    return render(
+        request,
+        "accounts/address_form.html",
+        {"form": form},
+    )
+
+
+@login_required(login_url="account_login")
+def address_list(request):
+    """Display delivery addresses belonging to the customer."""
+    addresses = request.user.customer_profile.delivery_addresses.all()
+
+    return render(
+        request,
+        "accounts/address_list.html",
+        {"addresses": addresses},
     )
