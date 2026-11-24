@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 
-from accounts.models import CustomerProfile
+from accounts.models import CustomerProfile, DeliveryAddress
 
 
 User = get_user_model()
@@ -433,3 +433,31 @@ class CustomerProfileViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(self.user.first_name, "John")
         self.assertEqual(self.user.last_name, "Smith")
+
+
+class DeliveryAddressTests(TestCase):
+    """Test customer delivery address functionality."""
+
+    def setUp(self):
+        """Create a customer with a profile."""
+        self.user = get_user_model().objects.create_user(
+            username="addresscustomer",
+            email="address@example.com",
+            password="SecurePassword123!",
+        )
+
+    def test_customer_can_have_multiple_addresses(self):
+        """A customer can save multiple delivery addresses."""
+        for postcode in ["PR7 1AA", "PR7 2BB"]:
+            DeliveryAddress.objects.create(
+                profile=self.user.customer_profile,
+                full_name="John Smith",
+                address_line_1="10 High Street",
+                city="Chorley",
+                postcode=postcode,
+            )
+
+        self.assertEqual(
+            self.user.customer_profile.delivery_addresses.count(),
+            2,
+        )
