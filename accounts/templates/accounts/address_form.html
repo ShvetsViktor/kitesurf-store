@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+
+            <h1 class="mb-4">
+                {% if address %}
+                    Edit Delivery Address
+                {% else %}
+                    Add Delivery Address
+                {% endif %}
+            </h1>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            {{ field.label }}
+                        </label>
+
+                        <input
+                            type="text"
+                            name="{{ field.html_name }}"
+                            id="{{ field.id_for_label }}"
+                            value="{{ field.value|default_if_none:'' }}"
+                            class="form-control{% if field.errors %} is-invalid{% endif %}"
+                            {% if field.field.required %}required{% endif %}
+                            {% if field.field.max_length %}maxlength="{{ field.field.max_length }}"{% endif %}
+                            {% if field.errors %}aria-invalid="true" aria-describedby="{{ field.auto_id }}_error"{% endif %}
+                        >
+
+                        {% if field.errors %}
+                            <div class="invalid-feedback" id="{{ field.auto_id }}_error">
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-primary">
+                    {% if address %}
+                        Save Changes
+                    {% else %}
+                        Save Address
+                    {% endif %}
+                </button>
+
+                <a href="{% url 'address_list' %}" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

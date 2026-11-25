@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="fs-2 mb-4">My Delivery Addresses</h1>
+
+    {% for address in addresses %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h2 class="h5">{{ address.full_name }}</h2>
+                {% if address.is_default %}
+                    <span class="badge bg-success ms-2">Default</span>
+                {% endif %}
+                <p class="mb-0">
+                    {{ address.address_line_1 }}<br>
+                    {{ address.city }}<br>
+                    {{ address.postcode }}
+                </p>
+                <div class="row g-2 mt-2">
+                    <div class="col-6 col-sm-2">
+                        <a
+                            href="{% url 'address_update' address.pk %}"
+                            class="btn btn-outline-primary btn-sm w-100"
+                        >
+                            Edit
+                        </a>
+                    </div>
+                
+                    <div class="col-6 col-sm-2">
+                        <a
+                            href="{% url 'address_delete' address.pk %}"
+                            class="btn btn-outline-danger btn-sm w-100"
+                        >
+                            Delete
+                        </a>
+                    </div>
+                
+                    {% if not address.is_default %}
+                        <div class="col-12 col-sm-3">
+                            <form
+                                method="post"
+                                action="{% url 'address_set_default' address.pk %}"
+                            >
+                                {% csrf_token %}
+                
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline-secondary btn-sm w-100"
+                                >
+                                    Set as Default
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p>You have no saved delivery addresses.</p>
+    {% endfor %}
+
+    <a href="{% url 'address_create' %}" class="btn btn-primary">
+        Add Address
+    </a>
+</div>
+{% endblock %}
