@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+from django.contrib.messages import constants as messages
 import dj_database_url
 from dotenv import load_dotenv
 import os
@@ -201,3 +202,7 @@ LOGOUT_REDIRECT_URL = "/"
 
 if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+MESSAGE_TAGS = {
+    messages.ERROR: "danger",
+}

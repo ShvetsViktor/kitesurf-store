@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.views.decorators.http import require_POST
@@ -150,3 +151,33 @@ def address_set_default(request, pk):
     )
 
     return redirect("address_list")
+
+
+@login_required(login_url="account_login")
+def account_delete(request):
+    """Allow customers to permanently delete their account."""
+    if request.method == "POST":
+        password = request.POST.get("password", "")
+
+        if request.user.check_password(password):
+            user = request.user
+
+            logout(request)
+            user.delete()
+
+            messages.success(
+                request,
+                "Your account has been deleted successfully.",
+            )
+
+            return redirect("home")
+
+        messages.error(
+            request,
+            "Incorrect password. Your account was not deleted.",
+        )
+
+    return render(
+        request,
+        "accounts/account_confirm_delete.html",
+    )

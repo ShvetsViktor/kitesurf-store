@@ -30,4 +30,9 @@ urlpatterns = [
         views.address_set_default,
         name="address_set_default",
     ),
+    path(
+        "delete/",
+        views.account_delete,
+        name="account_delete",
+    ),
 ]

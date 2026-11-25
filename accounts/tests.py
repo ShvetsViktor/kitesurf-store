@@ -821,3 +821,78 @@ class DeliveryAddressDefaultTests(TestCase):
         self.assertEqual(response.status_code, 405)
         self.assertTrue(self.first_address.is_default)
         self.assertFalse(self.second_address.is_default)
+
+
+class CustomerAccountDeletionTests(TestCase):
+    """Test secure customer account deletion."""
+
+    def setUp(self):
+        """Create a customer with a saved delivery address."""
+        self.user = User.objects.create_user(
+            username="delete_customer",
+            email="delete@example.com",
+            password="SecurePassword123!",
+        )
+
+        self.address = DeliveryAddress.objects.create(
+            profile=self.user.customer_profile,
+            full_name="John Smith",
+            address_line_1="10 High Street",
+            city="Chorley",
+            postcode="PR7 1AA",
+        )
+
+        self.url = reverse("account_delete")
+        self.client.force_login(self.user)
+
+    def test_customer_can_delete_account_with_correct_password(self):
+        """Correct password deletes account and related customer data."""
+        user_id = self.user.pk
+        profile_id = self.user.customer_profile.pk
+        address_id = self.address.pk
+
+        response = self.client.post(
+            self.url,
+            {"password": "SecurePassword123!"},
+        )
+
+        self.assertRedirects(response, reverse("home"))
+        self.assertFalse(User.objects.filter(pk=user_id).exists())
+        self.assertFalse(
+            CustomerProfile.objects.filter(pk=profile_id).exists()
+        )
+        self.assertFalse(
+            DeliveryAddress.objects.filter(pk=address_id).exists()
+        )
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_incorrect_password_does_not_delete_account(self):
+        """Incorrect password must not delete the customer account."""
+        response = self.client.post(
+            self.url,
+            {"password": "WrongPassword123!"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(User.objects.filter(pk=self.user.pk).exists())
+        self.assertTrue(
+            DeliveryAddress.objects.filter(pk=self.address.pk).exists()
+        )
+
+    def test_get_request_does_not_delete_account(self):
+        """Opening confirmation page must not delete the account."""
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(User.objects.filter(pk=self.user.pk).exists())
+
+    def test_anonymous_customer_cannot_access_account_deletion(self):
+        """Anonymous visitors must authenticate before deleting an account."""
+        self.client.logout()
+
+        response = self.client.get(self.url)
+
+        self.assertRedirects(
+            response,
+            f"{reverse('account_login')}?next={self.url}",
+        )
