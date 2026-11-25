@@ -15,4 +15,9 @@ urlpatterns = [
         views.address_list,
         name="address_list",
     ),
+    path(
+        "addresses/<int:pk>/edit/",
+        views.address_update,
+        name="address_update",
+    ),
 ]

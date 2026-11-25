@@ -554,3 +554,76 @@ class DeliveryAddressListTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, own_address.address_line_1)
         self.assertNotContains(response, other_address.address_line_1)
+
+
+class DeliveryAddressUpdateTests(TestCase):
+    """Test delivery address editing and ownership protection."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="address_owner",
+            email="owner@example.com",
+            password="SecurePassword123!",
+        )
+
+        self.other_user = get_user_model().objects.create_user(
+            username="other_customer",
+            email="other@example.com",
+            password="SecurePassword123!",
+        )
+
+        self.address = DeliveryAddress.objects.create(
+            profile=self.user.customer_profile,
+            full_name="John Smith",
+            address_line_1="10 High Street",
+            city="Chorley",
+            postcode="PR7 1AA",
+        )
+
+        self.other_address = DeliveryAddress.objects.create(
+            profile=self.other_user.customer_profile,
+            full_name="Jane Brown",
+            address_line_1="25 Market Street",
+            city="Preston",
+            postcode="PR1 2AB",
+        )
+
+        self.valid_data = {
+            "full_name": "John Smith",
+            "address_line_1": "15 New Street",
+            "address_line_2": "",
+            "city": "Chorley",
+            "county": "Lancashire",
+            "postcode": "PR7 2BB",
+            "phone_number": "",
+        }
+
+        self.client.force_login(self.user)
+
+    def test_customer_can_update_own_address(self):
+        """Customer can update their own saved delivery address."""
+        response = self.client.post(
+            reverse("address_update", args=[self.address.pk]),
+            self.valid_data,
+        )
+
+        self.address.refresh_from_db()
+
+        self.assertRedirects(response, reverse("address_list"))
+        self.assertEqual(self.address.address_line_1, "15 New Street")
+        self.assertEqual(self.address.postcode, "PR7 2BB")
+
+    def test_customer_cannot_update_another_customers_address(self):
+        """Customer cannot modify another customer's address."""
+        response = self.client.post(
+            reverse("address_update", args=[self.other_address.pk]),
+            self.valid_data,
+        )
+
+        self.other_address.refresh_from_db()
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            self.other_address.address_line_1,
+            "25 Market Street",
+        )

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <h1>My Delivery Addresses</h1>
+
+    {% for address in addresses %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h2 class="h5">{{ address.full_name }}</h2>
+                <p class="mb-0">
+                    {{ address.address_line_1 }}<br>
+                    {{ address.city }}<br>
+                    {{ address.postcode }}
+                </p>
+                <a
+                    href="{% url 'address_update' address.pk %}"
+                    class="btn btn-outline-primary btn-sm mt-3"
+                >
+                    Edit
+                </a>
+            </div>
+        </div>
+    {% empty %}
+        <p>You have no saved delivery addresses.</p>
+    {% endfor %}
+
+    <a href="{% url 'address_create' %}" class="btn btn-primary">
+        Add Address
+    </a>
+</div>
+{% endblock %}

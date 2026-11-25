@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import CustomerProfileForm, DeliveryAddressForm
 
@@ -61,4 +61,37 @@ def address_list(request):
         request,
         "accounts/address_list.html",
         {"addresses": addresses},
+    )
+
+
+@login_required(login_url="account_login")
+def address_update(request, pk):
+    """Allow customers to edit their own delivery addresses."""
+    address = get_object_or_404(
+        request.user.customer_profile.delivery_addresses,
+        pk=pk,
+    )
+
+    if request.method == "POST":
+        form = DeliveryAddressForm(request.POST, instance=address)
+
+        if form.is_valid():
+            form.save()
+
+            messages.success(
+                request,
+                "Delivery address updated successfully.",
+            )
+
+            return redirect("address_list")
+    else:
+        form = DeliveryAddressForm(instance=address)
+
+    return render(
+        request,
+        "accounts/address_form.html",
+        {
+            "form": form,
+            "address": address,
+        },
     )
