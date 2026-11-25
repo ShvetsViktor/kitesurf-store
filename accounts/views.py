@@ -95,3 +95,28 @@ def address_update(request, pk):
             "address": address,
         },
     )
+
+
+@login_required(login_url="account_login")
+def address_delete(request, pk):
+    """Allow customers to delete their own delivery addresses."""
+    address = get_object_or_404(
+        request.user.customer_profile.delivery_addresses,
+        pk=pk,
+    )
+
+    if request.method == "POST":
+        address.delete()
+
+        messages.success(
+            request,
+            "Delivery address deleted successfully.",
+        )
+
+        return redirect("address_list")
+
+    return render(
+        request,
+        "accounts/address_confirm_delete.html",
+        {"address": address},
+    )

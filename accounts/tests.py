@@ -627,3 +627,74 @@ class DeliveryAddressUpdateTests(TestCase):
             self.other_address.address_line_1,
             "25 Market Street",
         )
+
+
+class DeliveryAddressDeleteTests(TestCase):
+    """Test delivery address deletion and ownership protection."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="delete_owner",
+            email="delete_owner@example.com",
+            password="SecurePassword123!",
+        )
+
+        self.other_user = get_user_model().objects.create_user(
+            username="delete_other",
+            email="delete_other@example.com",
+            password="SecurePassword123!",
+        )
+
+        self.address = DeliveryAddress.objects.create(
+            profile=self.user.customer_profile,
+            full_name="John Smith",
+            address_line_1="10 High Street",
+            city="Chorley",
+            postcode="PR7 1AA",
+        )
+
+        self.other_address = DeliveryAddress.objects.create(
+            profile=self.other_user.customer_profile,
+            full_name="Jane Brown",
+            address_line_1="25 Market Street",
+            city="Preston",
+            postcode="PR1 2AB",
+        )
+
+        self.client.force_login(self.user)
+
+    def test_customer_can_delete_own_address(self):
+        """Customer can delete their own address using POST."""
+        response = self.client.post(
+            reverse("address_delete", args=[self.address.pk])
+        )
+
+        self.assertRedirects(response, reverse("address_list"))
+        self.assertFalse(
+            DeliveryAddress.objects.filter(pk=self.address.pk).exists()
+        )
+
+    def test_customer_cannot_delete_another_customers_address(self):
+        """Customer cannot delete another customer's address."""
+        response = self.client.post(
+            reverse("address_delete", args=[self.other_address.pk])
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(
+            DeliveryAddress.objects.filter(
+                pk=self.other_address.pk
+            ).exists()
+        )
+
+    def test_get_request_does_not_delete_address(self):
+        """Opening the confirmation page does not delete the address."""
+        response = self.client.get(
+            reverse("address_delete", args=[self.address.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Delete Address")
+        self.assertTrue(
+            DeliveryAddress.objects.filter(pk=self.address.pk).exists()
+        )

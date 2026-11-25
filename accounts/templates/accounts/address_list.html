@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container py-5">
-    <h1>My Delivery Addresses</h1>
+    <h1 class="fs-2 mb-4">My Delivery Addresses</h1>
 
     {% for address in addresses %}
         <div class="card mb-3">
@@ -13,12 +13,25 @@
                     {{ address.city }}<br>
                     {{ address.postcode }}
                 </p>
-                <a
-                    href="{% url 'address_update' address.pk %}"
-                    class="btn btn-outline-primary btn-sm mt-3"
-                >
-                    Edit
-                </a>
+                <div class="row g-2 mt-2">
+                    <div class="col-6 col-sm-2">
+                        <a
+                            href="{% url 'address_update' address.pk %}"
+                            class="btn btn-outline-primary btn-sm w-100"
+                        >
+                            Edit
+                        </a>
+                    </div>
+                
+                    <div class="col-6 col-sm-2">
+                        <a
+                            href="{% url 'address_delete' address.pk %}"
+                            class="btn btn-outline-danger btn-sm w-100"
+                        >
+                            Delete
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     {% empty %}

@@ -20,4 +20,9 @@ urlpatterns = [
         views.address_update,
         name="address_update",
     ),
+    path(
+        "addresses/<int:pk>/delete/",
+        views.address_delete,
+        name="address_delete",
+    ),
 ]
