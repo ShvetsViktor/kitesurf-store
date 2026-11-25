@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'products',
     'bag',
     "accounts.apps.AccountsConfig",
+    "checkout",
 ]
 
 MIDDLEWARE = [
