@@ -8,6 +8,9 @@
         <div class="card mb-3">
             <div class="card-body">
                 <h2 class="h5">{{ address.full_name }}</h2>
+                {% if address.is_default %}
+                    <span class="badge bg-success ms-2">Default</span>
+                {% endif %}
                 <p class="mb-0">
                     {{ address.address_line_1 }}<br>
                     {{ address.city }}<br>
@@ -31,6 +34,24 @@
                             Delete
                         </a>
                     </div>
+                
+                    {% if not address.is_default %}
+                        <div class="col-12 col-sm-3">
+                            <form
+                                method="post"
+                                action="{% url 'address_set_default' address.pk %}"
+                            >
+                                {% csrf_token %}
+                
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline-secondary btn-sm w-100"
+                                >
+                                    Set as Default
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

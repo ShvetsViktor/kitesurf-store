@@ -1,5 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import CustomerProfileForm, DeliveryAddressForm
@@ -34,6 +36,10 @@ def address_create(request):
         if form.is_valid():
             address = form.save(commit=False)
             address.profile = request.user.customer_profile
+
+            if not address.profile.delivery_addresses.exists():
+                address.is_default = True
+
             address.save()
 
             messages.success(
@@ -120,3 +126,25 @@ def address_delete(request, pk):
         "accounts/address_confirm_delete.html",
         {"address": address},
     )
+
+
+@login_required(login_url="account_login")
+@require_POST
+def address_set_default(request, pk):
+    """Set a customer's delivery address as default."""
+    addresses = request.user.customer_profile.delivery_addresses
+
+    with transaction.atomic():
+        address = get_object_or_404(addresses, pk=pk)
+
+        addresses.filter(is_default=True).update(is_default=False)
+
+        address.is_default = True
+        address.save(update_fields=["is_default"])
+
+    messages.success(
+        request,
+        "Default delivery address updated successfully.",
+    )
+
+    return redirect("address_list")

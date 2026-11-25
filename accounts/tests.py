@@ -513,6 +513,21 @@ class DeliveryAddressCreateTests(TestCase):
         self.assertContains(response, "Enter a valid UK postcode.")
         self.assertFalse(DeliveryAddress.objects.exists())
 
+    def test_first_delivery_address_becomes_default(self):
+        """The first saved address is automatically set as default."""
+        self.client.force_login(self.user)
+
+        self.client.post(
+            reverse("address_create"),
+            self.valid_data,
+        )
+
+        address = DeliveryAddress.objects.get(
+            profile=self.user.customer_profile,
+        )
+
+        self.assertTrue(address.is_default)
+
 
 class DeliveryAddressListTests(TestCase):
     """Test that customers can only view their own addresses."""
@@ -698,3 +713,85 @@ class DeliveryAddressDeleteTests(TestCase):
         self.assertTrue(
             DeliveryAddress.objects.filter(pk=self.address.pk).exists()
         )
+
+
+class DeliveryAddressDefaultTests(TestCase):
+    """Test default delivery address selection and ownership."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="default_owner",
+            email="default_owner@example.com",
+            password="SecurePassword123!",
+        )
+
+        self.other_user = get_user_model().objects.create_user(
+            username="default_other",
+            email="default_other@example.com",
+            password="SecurePassword123!",
+        )
+
+        self.first_address = DeliveryAddress.objects.create(
+            profile=self.user.customer_profile,
+            full_name="John Smith",
+            address_line_1="10 High Street",
+            city="Chorley",
+            postcode="PR7 1AA",
+            is_default=True,
+        )
+
+        self.second_address = DeliveryAddress.objects.create(
+            profile=self.user.customer_profile,
+            full_name="John Smith",
+            address_line_1="20 Market Street",
+            city="Preston",
+            postcode="PR1 2AB",
+        )
+
+        self.other_address = DeliveryAddress.objects.create(
+            profile=self.other_user.customer_profile,
+            full_name="Jane Brown",
+            address_line_1="30 Church Street",
+            city="Bolton",
+            postcode="BL1 1AA",
+            is_default=True,
+        )
+
+        self.client.force_login(self.user)
+
+    def test_customer_can_change_default_address(self):
+        """Selecting a new default clears the previous default."""
+        response = self.client.post(
+            reverse("address_set_default", args=[self.second_address.pk])
+        )
+
+        self.first_address.refresh_from_db()
+        self.second_address.refresh_from_db()
+
+        self.assertRedirects(response, reverse("address_list"))
+        self.assertFalse(self.first_address.is_default)
+        self.assertTrue(self.second_address.is_default)
+
+    def test_customer_cannot_change_another_customers_default(self):
+        """Customer cannot select another customer's address."""
+        response = self.client.post(
+            reverse("address_set_default", args=[self.other_address.pk])
+        )
+
+        self.other_address.refresh_from_db()
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(self.other_address.is_default)
+
+    def test_get_request_does_not_change_default_address(self):
+        """Default address cannot be changed through GET."""
+        response = self.client.get(
+            reverse("address_set_default", args=[self.second_address.pk])
+        )
+
+        self.first_address.refresh_from_db()
+        self.second_address.refresh_from_db()
+
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue(self.first_address.is_default)
+        self.assertFalse(self.second_address.is_default)
