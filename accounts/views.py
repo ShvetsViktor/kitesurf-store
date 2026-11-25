@@ -37,7 +37,9 @@ def address_create(request):
             address = form.save(commit=False)
             address.profile = request.user.customer_profile
 
-            if not address.profile.delivery_addresses.exists():
+            if not address.profile.delivery_addresses.filter(
+                is_default=True
+            ).exists():
                 address.is_default = True
 
             address.save()

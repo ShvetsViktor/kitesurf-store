@@ -528,6 +528,32 @@ class DeliveryAddressCreateTests(TestCase):
 
         self.assertTrue(address.is_default)
 
+    def test_new_address_becomes_default_when_no_default_exists(self):
+        """New address becomes default if
+        existing addresses have no default."""
+        DeliveryAddress.objects.create(
+            profile=self.user.customer_profile,
+            full_name="John Smith",
+            address_line_1="20 Market Street",
+            city="Preston",
+            postcode="PR1 2AB",
+            is_default=False,
+        )
+
+        self.client.force_login(self.user)
+
+        self.client.post(
+            reverse("address_create"),
+            self.valid_data,
+        )
+
+        new_address = DeliveryAddress.objects.get(
+            profile=self.user.customer_profile,
+            postcode="PR7 1AA",
+        )
+
+        self.assertTrue(new_address.is_default)
+
 
 class DeliveryAddressListTests(TestCase):
     """Test that customers can only view their own addresses."""
