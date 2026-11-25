@@ -29,7 +29,8 @@ KiteSurf Store is being developed as an original Django application for the **Ga
 7. [Product Catalogue](#product-catalogue)
 8. [Product Detail Page](#product-detail-page)
 9. [Shopping Bag](#shopping-bag)
-10. [AI Tools Usage](#ai-tools-usage)
+10. [Customer Accounts](#customer-accounts)
+11. [AI Tools Usage](#ai-tools-usage)
 
 Additional sections will be added as development progresses.
 
@@ -212,11 +213,7 @@ These features may be considered for future development.
 
 Each user story is tracked in a GitHub Issue with acceptance criteria.
 
-Completed user stories:
-
-- US01 — Browse products (#1).
-- US04 — Update and remove cart items (#4).
-- US18 — Search products (#18).
+Completed user stories include catalogue, product detail, shopping bag and customer account functionality (FEAT01 and FEAT02). See the corresponding implementation sections below.
 
 Implementation details, automated tests and deployment verification are documented in the relevant sections of this README.
 
@@ -450,17 +447,17 @@ The wireframes and visual design concept are planning artefacts. Optional elemen
 
 KiteSurf Store uses a relational database designed to support product management, customer accounts, saved delivery addresses and online orders.
 
-The planned database contains seven custom Django models:
+The database design includes the following implemented and planned custom Django models:
 
 - `Category`
 - `Product`
 - `ProductImage`
-- `UserProfile`
+- `CustomerProfile`
 - `DeliveryAddress`
 - `Order`
 - `OrderItem`
 
-Django's built-in `User` model handles authentication and is linked to `UserProfile` through a one-to-one relationship.
+Django's built-in `User` model handles authentication and is linked to `CustomerProfile` through a one-to-one relationship. The account and address models are implemented; order models remain planned.
 
 ### Entity Relationship Diagram
 
@@ -471,9 +468,9 @@ Django's built-in `User` model handles authentication and is linked to `UserProf
 - **Category → Product:** One category can contain multiple products (`PROTECT`).
 - **Product → ProductImage:** One product can have multiple images (`CASCADE`). Product images will be stored in Amazon S3.
 - **Product → OrderItem:** Products referenced by orders are protected from deletion (`PROTECT`).
-- **User → UserProfile:** Each registered customer has one profile.
-- **UserProfile → DeliveryAddress:** Customers can save multiple delivery addresses (`CASCADE`).
-- **UserProfile → Order:** Customers can have multiple orders. Guest orders do not require an account (`SET_NULL`).
+- **User → CustomerProfile:** Each registered customer has one profile.
+- **CustomerProfile → DeliveryAddress:** Customers can save multiple delivery addresses (`CASCADE`).
+- **CustomerProfile → Order:** Customers can have multiple orders. Guest orders do not require an account (`SET_NULL`).
 - **Order → OrderItem:** Each order contains purchased products (`CASCADE`).
 
 ### Design Decisions
@@ -484,7 +481,7 @@ Django's built-in `User` model handles authentication and is linked to `UserProf
 - Shopping bag contents are stored in Django Sessions rather than a database model.
 - `DeliveryAddress` supports customer-facing CRUD with ownership checks.
 - Orders preserve delivery details, product names, prices and quantities.
-- Guest checkout is supported through an optional relationship between `Order` and `UserProfile`.
+- Guest checkout is supported through an optional relationship between `Order` and `CustomerProfile`.
 - Stripe Test Mode is used for simulated payments.
 - Planned order statuses are `PENDING`, `PAID`, `CANCELLED` and `EXPIRED`.
 
@@ -730,6 +727,7 @@ Primary and outline-primary button styles have been implemented but have not yet
 | --- | --- |
 | Python 3.12.11 | Backend programming language |
 | Django 5.2.19 | Web application framework |
+| django-allauth | Customer authentication, email verification and password reset |
 | PostgreSQL (Neon) | Shared development and deployed application database |
 | SQLite in-memory | Fast, isolated automated testing |
 | pytest | Automated test runner and concise test reporting |
@@ -913,7 +911,14 @@ The shopping bag tests are located in `tests/js/bag.test.js`. They use a mocked 
 
 **Latest confirmed JavaScript test run (23 November 2026):** 4 Jest tests passed (1 test suite).
 
-#### Latest Shopping Bag Test Results — 23 November 2026
+#### Latest Full Test Results — 25 November 2026
+
+| Check | Result |
+| --- | --- |
+| Complete Django test suite | PASS — 174 tests, 6 subtests |
+| Django system checks | PASS — 0 issues |
+
+#### Shopping Bag Test Results — 23 November 2026
 
 | Check | Result |
 | --- | --- |
@@ -964,7 +969,7 @@ The issues were resolved by:
 
 The bug was documented in GitHub Issue #37 and closed after successful regression testing.
 
-Additional automated tests will be added as customer-facing functionality is implemented.
+Additional automated tests are added for new application behaviour where necessary.
 
 #### PLAN08 Test Results — 17 November 2026
 
@@ -991,7 +996,7 @@ The following files and directories are excluded from version control:
 
 Django's development mode is controlled by the `DEVELOPMENT` environment variable.
 
-The production environment will not define this variable, ensuring that Django debug mode is disabled.
+The production environment does not define this variable, keeping Django debug mode disabled.
 
 ### AWS S3 Configuration
 
@@ -1076,7 +1081,14 @@ The customer-facing product catalogue, including product search and category fil
 
 The catalogue was manually verified on Heroku on 12 November 2026. Product listings, images, fallback images, stock availability, search, category filtering and combined filtering work as expected.
 
-Individual product detail pages were implemented and deployed during PLAN08. The session-based shopping bag, Header integration and responsive styling were completed in Issue #44, merged through PR #45 and verified on Heroku on 23 November 2026. Customer accounts, checkout and payments remain to be developed.
+Individual product detail pages were implemented and deployed during PLAN08. The session-based shopping bag, Header integration and responsive styling were completed in Issue #44, merged through PR #45 and verified on Heroku on 23 November 2026. Customer accounts were subsequently completed in FEAT02. Checkout and payments remain to be developed.
+
+#### Customer Accounts Deployment — 25 November 2026
+
+- FEAT02 was merged into `main` (merge commit `2360797`) and deployed to Heroku.
+- Registration, login, email verification, password reset, profile management, delivery address CRUD and account deletion were manually verified.
+- Final local checks: 174 Django tests passed, 6 subtests passed and Django system checks reported 0 issues.
+- Email messages currently use Django's console backend; real email delivery is not configured.
 
 #### Shopping Bag Deployment — 23 November 2026
 
@@ -1401,6 +1413,39 @@ The four Jest tests cover Header item-count updates, subtotal and total updates,
 - [x] Merge PR #45 into `main` and verify the deployed feature on Heroku.
 
 **Result:** Issue #44 is closed. Shopping Bag is completed, merged and deployed. Checkout, payment processing and order creation are separate future development stages.
+
+---
+
+## Customer Accounts
+
+**Status:** Completed and deployed — FEAT02 (25 November 2026).
+
+The `accounts` Django application provides registration, login, logout, mandatory email verification and password reset using `django-allauth`. Authenticated customers can view and update their profile, manage saved UK delivery addresses and delete their account after password confirmation.
+
+### Customer Profiles and Addresses
+
+- `CustomerProfile` is linked to Django's User model through a `OneToOneField` and created automatically using a `post_save` signal.
+- Customers can update their first and last names; their email is displayed as read-only profile information.
+- `DeliveryAddress` is linked to `CustomerProfile` through a `ForeignKey` and supports customer-facing create, read, update and delete operations.
+- Address forms validate UK postcodes server-side. Customers can save multiple addresses and select one default address.
+- Authentication and ownership checks prevent customers from accessing or changing another customer's addresses.
+- Account deletion requires password confirmation and removes the associated profile and saved addresses.
+
+### Email Configuration
+
+Email verification and password reset links are generated through `django-allauth`. The current deployment uses Django's **console email backend**, so messages appear in application logs rather than being delivered to customers. A transactional email service is required before real customer use.
+
+### Testing and Deployment
+
+| Check | Result |
+| --- | --- |
+| Complete Django test suite (25 November 2026) | PASS — 174 tests, 6 subtests |
+| Django system checks | PASS — 0 issues |
+| Manual account functionality verification on Heroku | PASS |
+
+FEAT02 was merged into `main` (merge commit `2360797`) and deployed to Heroku on 25 November 2026. The GitHub issue is closed.
+
+Guest checkout, order history and historical order retention rules belong to the upcoming Checkout and Orders development stages.
 
 ---
 
