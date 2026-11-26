@@ -10,10 +10,21 @@ def bag_detail(request):
     """Display the shopping bag with items and total cost."""
     bag = request.session.get("bag", {})
 
+    try:
+        context = get_bag_details(bag)
+    except ValueError:
+        context = {
+            "items": [],
+            "total": 0,
+            "bag_error": (
+                "Some items in your bag are no longer available."
+            ),
+        }
+
     return render(
         request,
         "bag/bag_detail.html",
-        get_bag_details(bag),
+        context,
     )
 
 
@@ -76,17 +87,25 @@ def bag_update(request, product_id):
             status=400,
         )
 
-    bag[product_id_str] = quantity
-    request.session["bag"] = bag
+    updated_bag = bag.copy()
+    updated_bag[product_id_str] = quantity
 
-    bag_details = get_bag_details(bag)
+    try:
+        bag_details = get_bag_details(updated_bag)
+    except ValueError as error:
+        return JsonResponse(
+            {"success": False, "error": str(error)},
+            status=400,
+        )
+
+    request.session["bag"] = updated_bag
 
     return JsonResponse({
         "success": True,
         "quantity": quantity,
         "subtotal": str(product.price * quantity),
         "total": str(bag_details["total"]),
-        "bag_count": sum(bag.values()),
+        "bag_count": sum(updated_bag.values()),
     })
 
 
@@ -97,10 +116,14 @@ def bag_remove(request, product_id):
     bag.pop(str(product_id), None)
     request.session["bag"] = bag
 
-    bag_details = get_bag_details(bag)
+    try:
+        bag_details = get_bag_details(bag)
+        total = str(bag_details["total"])
+    except ValueError:
+        total = None
 
     return JsonResponse({
         "success": True,
-        "total": str(bag_details["total"]),
+        "total": total,
         "bag_count": sum(bag.values()),
     })

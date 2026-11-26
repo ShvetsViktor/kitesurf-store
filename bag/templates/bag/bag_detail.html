@@ -5,6 +5,12 @@
 <section class="container py-4 py-md-5">
     <h1 class="mb-4">Shopping Bag</h1>
 
+    {% if bag_error %}
+        <div class="alert alert-danger" role="alert">
+            {{ bag_error }}
+        </div>
+    {% endif %}
+
     <div id="bag-content">
         {% if items %}
             <div class="row g-4">
@@ -121,7 +127,7 @@
                     </div>
                 </div>
             </div>
-        {% else %}
+        {% elif not bag_error %}
             <div class="card bag-empty-state">
                 <div class="card-body text-center py-5">
                     <h2 class="h5 mb-3">Your shopping bag is empty.</h2>

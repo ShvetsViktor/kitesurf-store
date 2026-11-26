@@ -774,3 +774,102 @@ class BagCheckoutValidationTests(TestCase):
             with self.subTest(quantity=quantity):
                 with self.assertRaises(ValueError):
                     get_bag_details({str(self.product.pk): quantity})
+
+
+class BagUnavailableProductTests(TestCase):
+    """Test handling of unavailable products in the shopping bag."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.category = Category.objects.create(
+            name="Kites",
+            slug="unavailable-kites",
+        )
+        cls.product = Product.objects.create(
+            category=cls.category,
+            sku="UNAVAILABLE-KITE-001",
+            name="Test Kite",
+            description="Test product",
+            price=Decimal("150.00"),
+            stock=5,
+            is_active=True,
+        )
+
+    def test_bag_detail_handles_unavailable_product(self):
+        """Display an error instead of HTTP 500."""
+        session = self.client.session
+        session["bag"] = {str(self.product.pk): 1}
+        session.save()
+
+        self.product.is_active = False
+        self.product.save()
+
+        response = self.client.get(reverse("bag_detail"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Some items in your bag are no longer available.",
+        )
+
+    def test_bag_update_handles_unavailable_other_product(self):
+        """Reject updates when another bag item is unavailable."""
+        other_product = Product.objects.create(
+            category=self.category,
+            sku="UNAVAILABLE-KITE-003",
+            name="Other Kite",
+            description="Another product",
+            price=Decimal("100.00"),
+            stock=2,
+            is_active=True,
+        )
+
+        session = self.client.session
+        session["bag"] = {
+            str(self.product.pk): 1,
+            str(other_product.pk): 1,
+        }
+        session.save()
+
+        other_product.stock = 0
+        other_product.save()
+
+        response = self.client.post(
+            reverse("bag_update", args=[self.product.pk]),
+            {"quantity": 2},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(response.json()["success"])
+
+        session = self.client.session
+        self.assertEqual(session["bag"][str(self.product.pk)], 1)
+
+    def test_bag_remove_handles_unavailable_remaining_product(self):
+        """Allow removing an item even if another item is unavailable."""
+        other_product = Product.objects.create(
+            category=self.category,
+            sku="UNAVAILABLE-KITE-002",
+            name="Other Kite",
+            description="Another product",
+            price=Decimal("100.00"),
+            stock=2,
+            is_active=True,
+        )
+
+        session = self.client.session
+        session["bag"] = {
+            str(self.product.pk): 1,
+            str(other_product.pk): 1,
+        }
+        session.save()
+
+        self.product.is_active = False
+        self.product.save()
+
+        response = self.client.post(
+            reverse("bag_remove", args=[other_product.pk]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["success"])
