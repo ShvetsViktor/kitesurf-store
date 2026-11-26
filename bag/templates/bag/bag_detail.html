@@ -44,39 +44,47 @@
                                             Price: £{{ item.product.price }}
                                         </p>
 
-                                        <form
-                                            action="{% url 'bag_update' item.product.pk %}"
-                                            method="post"
-                                            class="bag-update-form mb-3"
-                                        >
-                                            {% csrf_token %}
+                                        {% if item.available == False %}
+                                            <p class="text-danger fw-semibold">
+                                                Unavailable
+                                            </p>
+                                        {% else %}
 
-                                            <label
-                                                for="quantity-{{ item.product.pk }}"
-                                                class="form-label"
+                                            <form
+                                                action="{% url 'bag_update' item.product.pk %}"
+                                                method="post"
+                                                class="bag-update-form mb-3"
                                             >
-                                                Quantity
-                                            </label>
+                                                {% csrf_token %}
 
-                                            <div class="d-flex flex-wrap gap-2 align-items-center">
-                                                <input
-                                                    type="number"
-                                                    id="quantity-{{ item.product.pk }}"
-                                                    name="quantity"
-                                                    value="{{ item.quantity }}"
-                                                    min="1"
-                                                    max="{{ item.product.stock }}"
-                                                    class="form-control bag-quantity-input"
+                                                <label
+                                                    for="quantity-{{ item.product.pk }}"
+                                                    class="form-label"
                                                 >
+                                                    Quantity
+                                                </label>
 
-                                                <button
-                                                    type="submit"
-                                                    class="btn btn-outline-primary"
-                                                >
-                                                    Update
-                                                </button>
-                                            </div>
-                                        </form>
+                                                <div class="d-flex flex-wrap gap-2 align-items-center">
+                                                    <input
+                                                        type="number"
+                                                        id="quantity-{{ item.product.pk }}"
+                                                        name="quantity"
+                                                        value="{{ item.quantity }}"
+                                                        min="1"
+                                                        max="{{ item.product.stock }}"
+                                                        class="form-control bag-quantity-input"
+                                                    >
+
+                                                    <button
+                                                        type="submit"
+                                                        class="btn btn-outline-primary"
+                                                    >
+                                                        Update
+                                                    </button>
+                                                </div>
+                                            </form>
+
+                                        {% endif %}
 
                                         <p class="fw-semibold mb-3">
                                             Subtotal:

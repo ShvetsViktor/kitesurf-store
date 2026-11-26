@@ -150,6 +150,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div>
                     `;
                 } else if (bagTotal) {
+                    if (data.total === null) {
+                        window.location.reload();
+                        return;
+                    }
+                
                     bagTotal.textContent = data.total;
                 }
 

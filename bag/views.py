@@ -7,15 +7,46 @@ from .utils import get_bag_details
 
 
 def bag_detail(request):
-    """Display the shopping bag with items and total cost."""
+    """Display bag items, including unavailable products."""
     bag = request.session.get("bag", {})
 
     try:
         context = get_bag_details(bag)
     except ValueError:
+        items = []
+        total = 0
+
+        for product_id, quantity in bag.items():
+            product = Product.objects.filter(pk=product_id).first()
+
+            if product is None:
+                continue
+
+            available = (
+                product.is_active
+                and product.stock > 0
+                and type(quantity) is int
+                and 0 < quantity <= product.stock
+            )
+
+            subtotal = (
+                product.price * quantity
+                if type(quantity) is int and quantity > 0
+                else 0
+            )
+
+            total += subtotal
+
+            items.append({
+                "product": product,
+                "quantity": quantity,
+                "subtotal": subtotal,
+                "available": available,
+            })
+
         context = {
-            "items": [],
-            "total": 0,
+            "items": items,
+            "total": total,
             "bag_error": (
                 "Some items in your bag are no longer available."
             ),
@@ -111,7 +142,7 @@ def bag_update(request, product_id):
 
 @require_POST
 def bag_remove(request, product_id):
-    """Remove a product from the shopping bag."""
+    """Remove a product even when other bag items are unavailable."""
     bag = request.session.get("bag", {})
     bag.pop(str(product_id), None)
     request.session["bag"] = bag

@@ -873,3 +873,56 @@ class BagUnavailableProductTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()["success"])
+
+    def test_unavailable_product_remains_visible_in_bag(self):
+        """Allow customers to see and remove unavailable products."""
+        session = self.client.session
+        session["bag"] = {str(self.product.pk): 1}
+        session.save()
+
+        self.product.is_active = False
+        self.product.save()
+
+        response = self.client.get(reverse("bag_detail"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.product.name)
+        self.assertContains(
+            response,
+            reverse("bag_remove", args=[self.product.pk]),
+        )
+        self.assertNotContains(response, "Your shopping bag is empty.")
+
+    def test_unavailable_product_cannot_be_updated(self):
+        """Hide quantity updates for unavailable products."""
+        session = self.client.session
+        session["bag"] = {str(self.product.pk): 1}
+        session.save()
+
+        self.product.stock = 0
+        self.product.save()
+
+        response = self.client.get(reverse("bag_detail"))
+
+        self.assertContains(response, "Unavailable")
+        self.assertNotContains(
+            response,
+            reverse("bag_update", args=[self.product.pk]),
+        )
+
+    def test_remove_unavailable_product_returns_valid_total(self):
+        """Return a numeric total after removing an unavailable item."""
+        session = self.client.session
+        session["bag"] = {str(self.product.pk): 1}
+        session.save()
+
+        self.product.is_active = False
+        self.product.save()
+
+        response = self.client.post(
+            reverse("bag_remove", args=[self.product.pk]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["total"], "0.00")
+        self.assertEqual(response.json()["bag_count"], 0)
