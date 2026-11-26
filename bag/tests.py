@@ -720,3 +720,57 @@ class ShoppingBagHeaderTests(TestCase):
             'class="badge rounded-pill bg-primary">3</span>',
             html=True,
         )
+
+
+class BagCheckoutValidationTests(TestCase):
+    """Test shopping bag validation before checkout."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.category = Category.objects.create(
+            name="Kites",
+            slug="kites",
+        )
+        cls.product = Product.objects.create(
+            category=cls.category,
+            sku="CHECKOUT-KITE-001",
+            name="Test Kite",
+            description="Test product",
+            price=Decimal("150.00"),
+            stock=5,
+            is_active=True,
+        )
+
+    def test_checkout_uses_current_product_price(self):
+        """Calculate totals using the current database price."""
+        self.product.price = Decimal("200.00")
+        self.product.save()
+
+        details = get_bag_details({str(self.product.pk): 2})
+
+        self.assertEqual(details["total"], Decimal("400.00"))
+
+    def test_checkout_rejects_insufficient_stock(self):
+        """Reject quantities exceeding available stock."""
+        with self.assertRaises(ValueError):
+            get_bag_details({str(self.product.pk): 6})
+
+    def test_checkout_rejects_inactive_product(self):
+        """Reject products that are no longer active."""
+        self.product.is_active = False
+        self.product.save()
+
+        with self.assertRaises(ValueError):
+            get_bag_details({str(self.product.pk): 1})
+
+    def test_checkout_rejects_missing_product(self):
+        """Reject products that no longer exist."""
+        with self.assertRaises(ValueError):
+            get_bag_details({"999999": 1})
+
+    def test_checkout_rejects_invalid_quantity(self):
+        """Reject zero, negative and malformed quantities."""
+        for quantity in (0, -1, "invalid"):
+            with self.subTest(quantity=quantity):
+                with self.assertRaises(ValueError):
+                    get_bag_details({str(self.product.pk): quantity})
