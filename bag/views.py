@@ -20,6 +20,13 @@ def bag_detail(request):
             product = Product.objects.filter(pk=product_id).first()
 
             if product is None:
+                items.append({
+                    "product": None,
+                    "product_id": product_id,
+                    "quantity": quantity,
+                    "subtotal": 0,
+                    "available": False,
+                })
                 continue
 
             available = (

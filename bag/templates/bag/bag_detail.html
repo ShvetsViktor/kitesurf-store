@@ -18,95 +18,118 @@
                     {% for item in items %}
                         <div class="card bag-item mb-3">
                             <div class="card-body">
-                                <div class="row g-3 align-items-center">
-                                    <div class="col-md-3">
-                                        {% if item.product.primary_image %}
-                                            <img
-                                                src="{{ item.product.primary_image.image.url }}"
-                                                alt="{{ item.product.name }}"
-                                                class="bag-product-image img-fluid"
-                                            >
-                                        {% else %}
-                                            <img
-                                                src="{% static 'images/default-image-fallback.webp' %}"
-                                                alt="{{ item.product.name }}"
-                                                class="bag-product-image img-fluid"
-                                            >
-                                        {% endif %}
-                                    </div>
+                                {% if not item.product %}
+                                    <h2 class="h5 mb-2">Product no longer available</h2>
 
-                                    <div class="col-md-9">
-                                        <h2 class="h5 mb-2">
-                                            {{ item.product.name }}
-                                        </h2>
+                                    <p class="text-danger fw-semibold">
+                                        Unavailable
+                                    </p>
 
-                                        <p class="mb-2">
-                                            Price: £{{ item.product.price }}
-                                        </p>
+                                    <form
+                                        action="{% url 'bag_remove' item.product_id %}"
+                                        method="post"
+                                        class="bag-remove-form"
+                                    >
+                                        {% csrf_token %}
 
-                                        {% if item.available == False %}
-                                            <p class="text-danger fw-semibold">
-                                                Unavailable
+                                        <button
+                                            type="submit"
+                                            class="btn btn-outline-danger"
+                                        >
+                                            Remove
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <div class="row g-3 align-items-center">
+                                        <div class="col-md-3">
+                                            {% if item.product.primary_image %}
+                                                <img
+                                                    src="{{ item.product.primary_image.image.url }}"
+                                                    alt="{{ item.product.name }}"
+                                                    class="bag-product-image img-fluid"
+                                                >
+                                            {% else %}
+                                                <img
+                                                    src="{% static 'images/default-image-fallback.webp' %}"
+                                                    alt="{{ item.product.name }}"
+                                                    class="bag-product-image img-fluid"
+                                                >
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="col-md-9">
+                                            <h2 class="h5 mb-2">
+                                                {{ item.product.name }}
+                                            </h2>
+
+                                            <p class="mb-2">
+                                                Price: £{{ item.product.price }}
                                             </p>
-                                        {% else %}
+
+                                            {% if item.available == False %}
+                                                <p class="text-danger fw-semibold">
+                                                    Unavailable
+                                                </p>
+                                            {% else %}
+
+                                                <form
+                                                    action="{% url 'bag_update' item.product.pk %}"
+                                                    method="post"
+                                                    class="bag-update-form mb-3"
+                                                >
+                                                    {% csrf_token %}
+
+                                                    <label
+                                                        for="quantity-{{ item.product.pk }}"
+                                                        class="form-label"
+                                                    >
+                                                        Quantity
+                                                    </label>
+
+                                                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                                                        <input
+                                                            type="number"
+                                                            id="quantity-{{ item.product.pk }}"
+                                                            name="quantity"
+                                                            value="{{ item.quantity }}"
+                                                            min="1"
+                                                            max="{{ item.product.stock }}"
+                                                            class="form-control bag-quantity-input"
+                                                        >
+
+                                                        <button
+                                                            type="submit"
+                                                            class="btn btn-outline-primary"
+                                                        >
+                                                            Update
+                                                        </button>
+                                                    </div>
+                                                </form>
+
+                                            {% endif %}
+
+                                            <p class="fw-semibold mb-3">
+                                                Subtotal:
+                                                £<span class="bag-item-subtotal">{{ item.subtotal }}</span>
+                                            </p>
 
                                             <form
-                                                action="{% url 'bag_update' item.product.pk %}"
+                                                action="{% url 'bag_remove' item.product.pk %}"
                                                 method="post"
-                                                class="bag-update-form mb-3"
+                                                class="bag-remove-form"
                                             >
                                                 {% csrf_token %}
 
-                                                <label
-                                                    for="quantity-{{ item.product.pk }}"
-                                                    class="form-label"
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-outline-danger"
                                                 >
-                                                    Quantity
-                                                </label>
-
-                                                <div class="d-flex flex-wrap gap-2 align-items-center">
-                                                    <input
-                                                        type="number"
-                                                        id="quantity-{{ item.product.pk }}"
-                                                        name="quantity"
-                                                        value="{{ item.quantity }}"
-                                                        min="1"
-                                                        max="{{ item.product.stock }}"
-                                                        class="form-control bag-quantity-input"
-                                                    >
-
-                                                    <button
-                                                        type="submit"
-                                                        class="btn btn-outline-primary"
-                                                    >
-                                                        Update
-                                                    </button>
-                                                </div>
+                                                    Remove
+                                                </button>
                                             </form>
-
-                                        {% endif %}
-
-                                        <p class="fw-semibold mb-3">
-                                            Subtotal:
-                                            £<span class="bag-item-subtotal">{{ item.subtotal }}</span>
-                                        </p>
-
-                                        <form
-                                            action="{% url 'bag_remove' item.product.pk %}"
-                                            method="post"
-                                            class="bag-remove-form"
-                                        >
-                                            {% csrf_token %}
-
-                                            <button
-                                                type="submit"
-                                                class="btn btn-outline-danger"
-                                            >
-                                                Remove
-                                            </button>
-                                        </form>
+                                        </div>
                                     </div>
-                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     {% endfor %}

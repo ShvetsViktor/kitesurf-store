@@ -926,3 +926,31 @@ class BagUnavailableProductTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["total"], "0.00")
         self.assertEqual(response.json()["bag_count"], 0)
+
+    def test_deleted_product_can_be_removed_from_bag(self):
+        """Allow removing a product deleted from the database."""
+        product_id = self.product.pk
+
+        session = self.client.session
+        session["bag"] = {str(product_id): 1}
+        session.save()
+
+        self.product.delete()
+
+        response = self.client.get(reverse("bag_detail"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            reverse("bag_remove", args=[product_id]),
+        )
+        self.assertContains(response, "Unavailable")
+
+        response = self.client.post(
+            reverse("bag_remove", args=[product_id]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["total"], "0.00")
+        self.assertEqual(response.json()["bag_count"], 0)
+        self.assertEqual(self.client.session["bag"], {})
