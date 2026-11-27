@@ -6,13 +6,13 @@
 
 ## Overview
 
-KiteSurf Store is a planned full-stack e-commerce web application for customers in the United Kingdom who want to browse and purchase kitesurfing equipment online.
+KiteSurf Store is a full-stack e-commerce web application under active development for customers in the United Kingdom who want to browse and purchase kitesurfing equipment online.
 
 The website aims to provide a straightforward shopping experience, allowing customers to explore equipment categories, search and filter products, view detailed product information, manage a shopping cart and complete purchases securely as guests or registered customers.
 
-Payments will be simulated using Stripe Test Mode, as KiteSurf Store is an educational demonstration project that does not process real payments or fulfil physical orders.
+Payments are simulated using Stripe Test Mode. Stripe Checkout and verified payment webhooks have been implemented and tested locally; FEAT03 deployment verification remains pending. KiteSurf Store is an educational demonstration project that does not process real payments or fulfil physical orders.
 
-Registered customers will be able to view and update their profiles, manage saved delivery addresses, review previous orders and delete their accounts. Product catalogue administration will use Django Admin; a separate staff dashboard is outside the initial project scope.
+Registered customers can already view and update their profiles, manage saved delivery addresses and delete their accounts. Order history is planned as part of FEAT03. Product catalogue administration uses Django Admin; a separate staff dashboard is outside the initial project scope.
 
 KiteSurf Store is being developed as an original Django application for the **Gateway Qualifications Level 5 Diploma in Web Application Development — Unit 4: Full Stack Frameworks with Django (F/650/3528)**.
 
@@ -30,7 +30,8 @@ KiteSurf Store is being developed as an original Django application for the **Ga
 8. [Product Detail Page](#product-detail-page)
 9. [Shopping Bag](#shopping-bag)
 10. [Customer Accounts](#customer-accounts)
-11. [AI Tools Usage](#ai-tools-usage)
+11. [Checkout, Stripe Payments and Orders](#checkout-stripe-payments-and-orders)
+12. [AI Tools Usage](#ai-tools-usage)
 
 Additional sections will be added as development progresses.
 
@@ -214,6 +215,8 @@ These features may be considered for future development.
 Each user story is tracked in a GitHub Issue with acceptance criteria.
 
 Completed user stories include catalogue, product detail, shopping bag and customer account functionality (FEAT01 and FEAT02). See the corresponding implementation sections below.
+
+FEAT03 — Checkout, Stripe Payments and Orders is in progress. Stripe Checkout, verified payment webhooks and transactional stock deduction have been implemented and tested locally. Order confirmation emails, order history and final deployment verification remain outstanding.
 
 Implementation details, automated tests and deployment verification are documented in the relevant sections of this README.
 
@@ -447,7 +450,7 @@ The wireframes and visual design concept are planning artefacts. Optional elemen
 
 KiteSurf Store uses a relational database designed to support product management, customer accounts, saved delivery addresses and online orders.
 
-The database design includes the following implemented and planned custom Django models:
+The database design includes the following custom Django models:
 
 - `Category`
 - `Product`
@@ -457,7 +460,7 @@ The database design includes the following implemented and planned custom Django
 - `Order`
 - `OrderItem`
 
-Django's built-in `User` model handles authentication and is linked to `CustomerProfile` through a one-to-one relationship. The account and address models are implemented; order models remain planned.
+Django's built-in `User` model handles authentication and is linked to `CustomerProfile` through a one-to-one relationship. The account, address and order models are implemented.
 
 ### Entity Relationship Diagram
 
@@ -483,30 +486,27 @@ Django's built-in `User` model handles authentication and is linked to `Customer
 - Orders preserve delivery details, product names, prices and quantities.
 - Guest checkout is supported through an optional relationship between `Order` and `CustomerProfile`.
 - Stripe Test Mode is used for simulated payments.
-- Planned order statuses are `PENDING`, `PAID`, `CANCELLED` and `EXPIRED`.
+- Order statuses include `PENDING`, `PAID`, `CANCELLED`, `EXPIRED` and `STOCK_ISSUE`.
 
 ### Data Integrity and Payment Handling
 
-Django ORM relationships and database constraints will maintain data consistency.
+Django ORM relationships and database constraints maintain data consistency.
 
-Product stock will be validated on the server before checkout. Stock will be reserved when a pending order and its Stripe Checkout Session are successfully established.
+Product availability and quantities are checked on the server before checkout. Pending orders do not reserve stock. After Stripe confirms payment through a verified webhook, the application checks current stock again and deducts it inside a database transaction.
 
-The application will use four order statuses:
+Order statuses are:
 
 - `PENDING` — Awaiting payment confirmation.
-- `PAID` — Payment successfully confirmed by Stripe.
-- `CANCELLED` — Checkout cancelled and reserved stock released.
-- `EXPIRED` — Stripe Checkout Session expired and reserved stock released.
+- `PAID` — Payment verified and stock successfully deducted.
+- `STOCK_ISSUE` — Stripe has confirmed payment, but insufficient stock prevents order completion. No stock is deducted for that order, and administrative intervention is required.
+- `CANCELLED` — Checkout cancelled.
+- `EXPIRED` — Stripe Checkout Session expired.
 
-Payment confirmation will rely on verified Stripe webhooks rather than browser redirects.
+The webhook uses row-level locking (`select_for_update()`), validates the combined quantity for each product across order items, and performs all-or-nothing stock deductions. Idempotent order status checks prevent repeat deductions on duplicate webhook delivery. The browser return URL cannot independently mark an order paid.
 
-Database transactions and idempotent order status transitions will prevent overselling, duplicate payment processing and repeated stock adjustments.
+**Known limitation:** Two customers can reach Stripe Checkout for the final item because stock is not reserved before payment. If both payments succeed, one order may become `STOCK_ISSUE`. This is a demonstration store using Stripe Test Mode; refunds and physical fulfilment are out of scope. Such orders require administrative review. PostgreSQL concurrency behaviour still requires dedicated verification; SQLite tests alone do not establish row-locking guarantees.
 
-Cancelled or expired checkout sessions will release reserved stock only once. Paid orders will retain their stock deduction.
-
-Historical orders will preserve product names, quantities, prices and delivery details independently of subsequent changes to products, saved addresses or customer accounts.
-
-These rules describe the planned implementation and will be verified during checkout development.
+Historical orders preserve product names, quantities, prices and delivery details independently of subsequent changes to products, saved addresses or customer accounts.
 
 ---
 
@@ -740,7 +740,7 @@ Primary and outline-primary button styles have been implemented but have not yet
 | JavaScript | Client-side functionality |
 | AWS S3 | Static and product media file storage (verified) |
 | Heroku | Application hosting (initial deployment verified) |
-| Stripe Test Mode | Planned simulated payment processing |
+| Stripe Test Mode | Simulated payment processing (local integration verified) |
 | django-storages and boto3 | Django integration with Amazon S3 |
 | Gunicorn | Production application server |
 
@@ -911,11 +911,11 @@ The shopping bag tests are located in `tests/js/bag.test.js`. They use a mocked 
 
 **Latest confirmed JavaScript test run (23 November 2026):** 4 Jest tests passed (1 test suite).
 
-#### Latest Full Test Results — 25 November 2026
+#### Latest Full Test Results — 27 November 2026
 
 | Check | Result |
 | --- | --- |
-| Complete Django test suite | PASS — 174 tests, 6 subtests |
+| Complete Django test suite | PASS — 215 tests, 14 subtests |
 | Django system checks | PASS — 0 issues |
 
 #### Shopping Bag Test Results — 23 November 2026
@@ -1081,7 +1081,7 @@ The customer-facing product catalogue, including product search and category fil
 
 The catalogue was manually verified on Heroku on 12 November 2026. Product listings, images, fallback images, stock availability, search, category filtering and combined filtering work as expected.
 
-Individual product detail pages were implemented and deployed during PLAN08. The session-based shopping bag, Header integration and responsive styling were completed in Issue #44, merged through PR #45 and verified on Heroku on 23 November 2026. Customer accounts were subsequently completed in FEAT02. Checkout and payments remain to be developed.
+Individual product detail pages were implemented and deployed during PLAN08. The session-based shopping bag, Header integration and responsive styling were completed in Issue #44, merged through PR #45 and verified on Heroku on 23 November 2026. Customer accounts were subsequently completed in FEAT02. Checkout and Stripe payment integration are in progress under FEAT03; local payment and stock-management tests have passed, but FEAT03 is not yet deployed and verified.
 
 #### Customer Accounts Deployment — 25 November 2026
 
@@ -1250,7 +1250,7 @@ Form labels use Bootstrap's `visually-hidden` class to remain accessible to assi
 
 - Product detail pages are now implemented (PLAN08).
 - Product cards now link to their corresponding product detail pages.
-- Session-based shopping bag functionality, Header integration and responsive styling were completed in Issue #44 and verified on Heroku on 23 November 2026. Checkout is not yet implemented.
+- Session-based shopping bag functionality, Header integration and responsive styling were completed in Issue #44 and verified on Heroku on 23 November 2026. Checkout integration is in progress under FEAT03.
 - Price sorting and related products remain optional features.
 
 ### Deployment Status
@@ -1412,7 +1412,7 @@ The four Jest tests cover Header item-count updates, subtotal and total updates,
 - [x] Rerun the full Django and Jest test suites and Django system checks.
 - [x] Merge PR #45 into `main` and verify the deployed feature on Heroku.
 
-**Result:** Issue #44 is closed. Shopping Bag is completed, merged and deployed. Checkout, payment processing and order creation are separate future development stages.
+**Result:** Issue #44 is closed. Shopping Bag is completed, merged and deployed. Checkout, payment processing and order creation are developed separately under FEAT03 and remain in progress.
 
 ---
 
@@ -1445,7 +1445,47 @@ Email verification and password reset links are generated through `django-allaut
 
 FEAT02 was merged into `main` (merge commit `2360797`) and deployed to Heroku on 25 November 2026. The GitHub issue is closed.
 
-Guest checkout, order history and historical order retention rules belong to the upcoming Checkout and Orders development stages.
+Checkout and order handling are being implemented under FEAT03; order history and final historical-order verification remain outstanding.
+
+---
+
+## Checkout, Stripe Payments and Orders
+
+**Status:** In progress — FEAT03 (local integration verified 27 November 2026; Heroku deployment pending).
+
+### Implementation
+
+The dedicated `checkout` Django application integrates Stripe Checkout in **Test Mode** with local `Order` and `OrderItem` records. A pending order is created before redirecting to Stripe. The application retains purchased product names, quantities and prices in order items and stores Stripe Checkout Session and payment identifiers on the order. Orders can be inspected in Django Admin, including filtering by status. The customer-facing return page states that payment confirmation is being processed; returning from Stripe is not itself proof of payment.
+
+### Stock and Payment Confirmation
+
+Stock is validated before checkout but **not reserved** while a Stripe Checkout Session is open. After Stripe sends a signed successful-payment event, the webhook verifies the payment status, GBP currency and paid amount against the stored order total before checking the order and current stock. Within a database transaction it locks the relevant rows, aggregates quantities for repeated product entries, and either deducts all required stock and sets the order to `PAID`, or deducts nothing and sets `STOCK_ISSUE`. Duplicate webhook deliveries do not deduct stock again.
+
+This approach prevents negative stock and partial deductions but **does not guarantee that every successfully paid order can be fulfilled**: concurrent customers may pay for the last available unit before either webhook completes. The second order can receive `STOCK_ISSUE`. This status indicates a verified successful payment without sufficient stock to complete the order; no stock is deducted for that order and administrative intervention is required. The demonstration does not process real payments or ship goods, and automated refund processing is outside scope. PostgreSQL concurrency testing remains outstanding.
+
+### Verified Local Testing — 27 November 2026
+
+| Check | Result |
+| --- | --- |
+| Complete Django suite (`pytest -q`) | PASS — 215 tests, 14 subtests |
+| Django system checks | PASS — 0 issues |
+| Stripe Test Mode payment and webhook | PASS — manually verified with Stripe CLI |
+| Successful payment updates order to `PAID` | PASS — manual verification |
+| Successful payment deducts stock | PASS — manual verification |
+| Stock reduced during Stripe Checkout | PASS — manual verification: order became `STOCK_ISSUE`, stock unchanged |
+| Duplicate webhook and duplicate order-item handling | PASS — automated tests |
+| PostgreSQL concurrent webhook processing | NOT YET VERIFIED |
+| Heroku Stripe checkout and production webhook | NOT YET VERIFIED |
+
+### Remaining Work
+
+- Verify cancellation, expiration, asynchronous payment outcomes and failure feedback against the implemented code.
+- Verify clearing the shopping bag after confirmed payment.
+- Configure real transactional email delivery and implement paid-order confirmation emails.
+- Implement authenticated order history, order details and ownership checks.
+- Define administrative handling of `STOCK_ISSUE` orders.
+- Test concurrent stock updates using an isolated PostgreSQL test database.
+- Complete manual regression testing and deploy/verify FEAT03 on Heroku.
 
 ---
 
