@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="container py-4 py-md-5">
+    <h1 class="mb-4">Checkout</h1>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="h5 mb-4">Delivery Details</h2>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {{ form.as_p }}
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                            disabled
+                        >
+                            Continue to Payment
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Order Summary</h2>
+
+                    {% for item in items %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>
+                                {{ item.product.name }}
+                                × {{ item.quantity }}
+                            </span>
+
+                            <span>£{{ item.subtotal }}</span>
+                        </div>
+                    {% endfor %}
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <strong>Total</strong>
+                        <strong>£{{ total }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
