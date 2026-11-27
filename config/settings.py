@@ -206,3 +206,5 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 MESSAGE_TAGS = {
     messages.ERROR: "danger",
 }
+
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
