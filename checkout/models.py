@@ -11,6 +11,7 @@ class Order(models.Model):
         PAID = "PAID", "Paid"
         CANCELLED = "CANCELLED", "Cancelled"
         EXPIRED = "EXPIRED", "Expired"
+        STOCK_ISSUE = "STOCK_ISSUE", "Stock Issue"
 
     customer = models.ForeignKey(
         "accounts.CustomerProfile",
