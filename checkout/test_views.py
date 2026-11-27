@@ -228,3 +228,27 @@ class CheckoutViewTests(TestCase):
         )
 
         mock_create.assert_called_once()
+
+
+class CheckoutReturnViewTests(TestCase):
+    """Test return pages after Stripe Checkout."""
+
+    def test_checkout_success_page(self):
+        """Display a page after returning from Stripe Checkout."""
+        response = self.client.get(reverse("checkout_success"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response,
+            "checkout/success.html",
+        )
+
+    def test_checkout_cancel_page(self):
+        """Display a page when Stripe Checkout is cancelled."""
+        response = self.client.get(reverse("checkout_cancel"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response,
+            "checkout/cancel.html",
+        )

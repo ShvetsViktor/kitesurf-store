@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="container py-5 text-center">
+    <h1>Payment Cancelled</h1>
+
+    <p>
+        Your checkout was cancelled.
+        No payment has been confirmed.
+    </p>
+
+    <a href="{% url 'checkout' %}" class="btn btn-primary">
+        Return to Checkout
+    </a>
+</section>
+{% endblock %}

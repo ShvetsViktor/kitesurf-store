@@ -86,11 +86,11 @@ def checkout(request):
                 line_items=line_items,
                 client_reference_id=str(order.order_number),
                 success_url=request.build_absolute_uri(
-                    reverse("checkout")
-                ) + "?payment=success",
+                    reverse("checkout_success")
+                ),
                 cancel_url=request.build_absolute_uri(
-                    reverse("checkout")
-                ) + "?payment=cancelled",
+                    reverse("checkout_cancel")
+                ),
             )
 
             order.stripe_session_id = stripe_session.id
@@ -111,3 +111,13 @@ def checkout(request):
         "checkout/checkout.html",
         context,
     )
+
+
+def checkout_success(request):
+    """Display the return page after Stripe Checkout."""
+    return render(request, "checkout/success.html")
+
+
+def checkout_cancel(request):
+    """Display the page when Stripe Checkout is cancelled."""
+    return render(request, "checkout/cancel.html")
