@@ -48,25 +48,30 @@ def stripe_webhook(request):
                 return HttpResponse(status=400)
 
             if order.status == Order.Status.PENDING:
-                items = list(order.items.select_related("product"))
+                required_stock = {}
+
+                for item in order.items.all():
+                    required_stock[item.product_id] = (
+                        required_stock.get(item.product_id, 0) + item.quantity
+                    )
 
                 products = {
                     product.pk: product
                     for product in Product.objects.select_for_update().filter(
-                        pk__in=[item.product_id for item in items]
+                        pk__in=required_stock
                     )
                 }
 
                 if any(
-                    item.product_id not in products
-                    or products[item.product_id].stock < item.quantity
-                    for item in items
+                    product_id not in products
+                    or products[product_id].stock < quantity
+                    for product_id, quantity in required_stock.items()
                 ):
                     order.status = Order.Status.STOCK_ISSUE
                 else:
-                    for item in items:
-                        product = products[item.product_id]
-                        product.stock -= item.quantity
+                    for product_id, quantity in required_stock.items():
+                        product = products[product_id]
+                        product.stock -= quantity
                         product.save(update_fields=["stock"])
 
                     order.status = Order.Status.PAID

@@ -389,3 +389,160 @@ class StripeWebhookTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(order.status, Order.Status.STOCK_ISSUE)
         self.assertEqual(product.stock, 2)
+
+    @patch("checkout.webhooks.stripe.Webhook.construct_event")
+    def test_insufficient_stock_preserves_all_product_stock(
+        self,
+        mock_event,
+    ):
+        """Do not deduct any stock when one order item is unavailable."""
+        category = Category.objects.create(
+            name="Kites",
+            slug="kites",
+        )
+
+        kite = Product.objects.create(
+            category=category,
+            sku="KITE-ATOMIC-001",
+            name="Test Kite",
+            description="Test description",
+            price=Decimal("150.00"),
+            stock=10,
+            is_active=True,
+        )
+
+        board = Product.objects.create(
+            category=category,
+            sku="BOARD-ATOMIC-001",
+            name="Test Board",
+            description="Test description",
+            price=Decimal("200.00"),
+            stock=1,
+            is_active=True,
+        )
+
+        order = Order.objects.create(
+            full_name="John Smith",
+            email="john@example.com",
+            address_line_1="10 High Street",
+            city="Manchester",
+            postcode="M1 1AA",
+            order_total=Decimal("900.00"),
+            delivery_cost=Decimal("0.00"),
+            grand_total=Decimal("900.00"),
+            status=Order.Status.PENDING,
+            stripe_session_id="cs_test_atomic_stock",
+        )
+
+        OrderItem.objects.create(
+            order=order,
+            product=kite,
+            product_name=kite.name,
+            quantity=2,
+            price=kite.price,
+        )
+
+        OrderItem.objects.create(
+            order=order,
+            product=board,
+            product_name=board.name,
+            quantity=3,
+            price=board.price,
+        )
+
+        mock_event.return_value = {
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_test_atomic_stock",
+                    "payment_status": "paid",
+                    "amount_total": 90000,
+                    "currency": "gbp",
+                }
+            },
+        }
+
+        response = self.client.post(
+            reverse("stripe_webhook"),
+            data=b'{"test": true}',
+            content_type="application/json",
+            HTTP_STRIPE_SIGNATURE="test_signature",
+        )
+
+        kite.refresh_from_db()
+        board.refresh_from_db()
+        order.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(order.status, Order.Status.STOCK_ISSUE)
+        self.assertEqual(kite.stock, 10)
+        self.assertEqual(board.stock, 1)
+
+    @patch("checkout.webhooks.stripe.Webhook.construct_event")
+    def test_duplicate_order_items_do_not_oversell_stock(
+        self,
+        mock_event,
+    ):
+        """Check total required stock across duplicate order items."""
+        category = Category.objects.create(
+            name="Kites",
+            slug="kites",
+        )
+
+        product = Product.objects.create(
+            category=category,
+            sku="KITE-DUPLICATE-001",
+            name="Test Kite",
+            description="Test description",
+            price=Decimal("150.00"),
+            stock=5,
+            is_active=True,
+        )
+
+        order = Order.objects.create(
+            full_name="John Smith",
+            email="john@example.com",
+            address_line_1="10 High Street",
+            city="Manchester",
+            postcode="M1 1AA",
+            order_total=Decimal("900.00"),
+            delivery_cost=Decimal("0.00"),
+            grand_total=Decimal("900.00"),
+            status=Order.Status.PENDING,
+            stripe_session_id="cs_test_duplicate_items",
+        )
+
+        for _ in range(2):
+            OrderItem.objects.create(
+                order=order,
+                product=product,
+                product_name=product.name,
+                quantity=3,
+                price=product.price,
+            )
+
+        mock_event.return_value = {
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_test_duplicate_items",
+                    "payment_status": "paid",
+                    "amount_total": 90000,
+                    "currency": "gbp",
+                }
+            },
+        }
+
+        response = self.client.post(
+            reverse("stripe_webhook"),
+            data=b'{"test": true}',
+            content_type="application/json",
+            HTTP_STRIPE_SIGNATURE="test_signature",
+        )
+
+        product.refresh_from_db()
+        order.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(order.status, Order.Status.STOCK_ISSUE)
+        self.assertEqual(product.stock, 5)
