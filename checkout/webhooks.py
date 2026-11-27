@@ -2,10 +2,12 @@ import stripe
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import F
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Order
+from products.models import Product
 
 
 @csrf_exempt
@@ -47,6 +49,19 @@ def stripe_webhook(request):
                 return HttpResponse(status=400)
 
             if order.status == Order.Status.PENDING:
+                for item in order.items.all():
+                    updated = Product.objects.filter(
+                        pk=item.product_id,
+                        stock__gte=item.quantity,
+                    ).update(
+                        stock=F("stock") - item.quantity,
+                    )
+
+                    if not updated:
+                        raise ValueError(
+                            f"Insufficient stock for product {item.product_id}"
+                        )
+
                 order.status = Order.Status.PAID
                 order.save(update_fields=["status", "updated_at"])
 

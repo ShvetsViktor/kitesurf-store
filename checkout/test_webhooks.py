@@ -5,7 +5,8 @@ import stripe
 from django.test import TestCase
 from django.urls import reverse
 
-from checkout.models import Order
+from checkout.models import Order, OrderItem
+from products.models import Category, Product
 
 
 class StripeWebhookTests(TestCase):
@@ -190,3 +191,68 @@ class StripeWebhookTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(order.status, Order.Status.PAID)
+
+    @patch("checkout.webhooks.stripe.Webhook.construct_event")
+    def test_paid_webhook_reduces_product_stock(self, mock_event):
+        """Reduce product stock after successful Stripe payment."""
+        category = Category.objects.create(
+            name="Kites",
+            slug="kites",
+        )
+
+        product = Product.objects.create(
+            category=category,
+            sku="KITE-STOCK-001",
+            name="Test Kite",
+            description="Test description",
+            price=Decimal("150.00"),
+            stock=10,
+            is_active=True,
+        )
+
+        order = Order.objects.create(
+            full_name="John Smith",
+            email="john@example.com",
+            address_line_1="10 High Street",
+            city="Manchester",
+            postcode="M1 1AA",
+            order_total=Decimal("300.00"),
+            delivery_cost=Decimal("0.00"),
+            grand_total=Decimal("300.00"),
+            status=Order.Status.PENDING,
+            stripe_session_id="cs_test_stock",
+        )
+
+        OrderItem.objects.create(
+            order=order,
+            product=product,
+            product_name=product.name,
+            quantity=2,
+            price=product.price,
+        )
+
+        mock_event.return_value = {
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_test_stock",
+                    "payment_status": "paid",
+                    "amount_total": 30000,
+                    "currency": "gbp",
+                }
+            },
+        }
+
+        response = self.client.post(
+            reverse("stripe_webhook"),
+            data=b'{"test": true}',
+            content_type="application/json",
+            HTTP_STRIPE_SIGNATURE="test_signature",
+        )
+
+        product.refresh_from_db()
+        order.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(order.status, Order.Status.PAID)
+        self.assertEqual(product.stock, 8)
