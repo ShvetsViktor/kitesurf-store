@@ -1463,6 +1463,12 @@ Stock is validated before checkout but **not reserved** while a Stripe Checkout 
 
 This approach prevents negative stock and partial deductions but **does not guarantee that every successfully paid order can be fulfilled**: concurrent customers may pay for the last available unit before either webhook completes. The second order can receive `STOCK_ISSUE`. This status indicates a verified successful payment without sufficient stock to complete the order; no stock is deducted for that order and administrative intervention is required. The demonstration does not process real payments or ship goods, and automated refund processing is outside scope. PostgreSQL concurrency testing remains outstanding.
 
+### Cancellation and Expiration Scope
+
+The next FEAT03 step is to verify the Stripe `cancel_url` return flow using TDD. A customer who returns without paying should see clear cancellation feedback and retain their shopping bag for another attempt. A cancellation return must not mark an order `PAID` or deduct stock; the browser redirect alone is not trusted as proof of a payment outcome.
+
+Automatic handling of Stripe `checkout.session.expired` events is **out of scope** for this educational implementation. Because pending orders do not reserve inventory, expiration does not require stock release. An abandoned or expired unpaid Checkout Session may therefore leave its local order in `PENDING`; the existing `EXPIRED` status is retained for possible future implementation. This is a documented limitation, not a claim that expiration handling has been implemented.
+
 ### Verified Local Testing — 27 November 2026
 
 | Check | Result |
@@ -1479,7 +1485,7 @@ This approach prevents negative stock and partial deductions but **does not guar
 
 ### Remaining Work
 
-- Verify cancellation, expiration, asynchronous payment outcomes and failure feedback against the implemented code.
+- Verify Stripe Checkout cancellation return, clear feedback, preserved shopping bag and no stock deduction (TDD); verify relevant asynchronous payment outcomes and failure feedback. Expiration webhook handling is intentionally out of scope.
 - Verify clearing the shopping bag after confirmed payment.
 - Configure real transactional email delivery and implement paid-order confirmation emails.
 - Implement authenticated order history, order details and ownership checks.
